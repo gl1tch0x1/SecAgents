@@ -1,0 +1,17 @@
+#!/bin/sh
+# Headless Chromium: one isolated profile per invocation (multi-"tab" pattern = multiple runs).
+set -e
+URL="${1:?usage: secagents-chrome <url>}"
+UD="${TMPDIR:-/tmp}/secagents-chrome-$$"
+mkdir -p "$UD"
+trap 'rm -rf "$UD"' EXIT
+if command -v chromium >/dev/null 2>&1; then
+  CHROME=chromium
+elif command -v chromium-browser >/dev/null 2>&1; then
+  CHROME=chromium-browser
+else
+  echo "chromium not installed" >&2
+  exit 1
+fi
+exec "$CHROME" --headless=new --disable-gpu --no-sandbox --disable-dev-shm-usage \
+  --user-data-dir="$UD" --virtual-time-budget=12000 --dump-dom "$URL"

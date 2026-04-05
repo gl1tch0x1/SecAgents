@@ -1,0 +1,45 @@
+# Agentic security sandbox: proxy, browser, terminals, Python tooling, recon, static analysis helpers.
+FROM alpine:3.20
+
+RUN apk add --no-cache \
+    bash curl ca-certificates jq \
+    python3 py3-pip \
+    nodejs npm \
+    ruby \
+    go \
+    openjdk17-jre-headless \
+    ripgrep \
+    grep \
+    findutils \
+    coreutils \
+    file \
+    binutils \
+    bind-tools \
+    openssl \
+    socat \
+    netcat-openbsd \
+    nmap \
+    ttf-freefont \
+    chromium \
+    xvfb \
+    xxd \
+    util-linux \
+    libffi-dev \
+    openssl-dev \
+    gcc \
+    musl-dev \
+    python3-dev \
+    && rm -rf /var/cache/apk/*
+
+# Static analysis (always); mitmproxy best-effort (musl wheels may be unavailable on some arches)
+RUN pip3 install --no-cache-dir --break-system-packages bandit \
+    && (pip3 install --no-cache-dir --break-system-packages 'mitmproxy>=10,<11' || true)
+
+COPY sandbox_helpers /opt/secagents/
+RUN chmod +x /opt/secagents/bin/* 2>/dev/null || true \
+    && ln -sf /opt/secagents/TOOLKIT.md /opt/secagents/README_TOOLKIT.txt
+
+ENV PATH="/opt/secagents/bin:${PATH}"
+ENV SECAGENTS_TOOLKIT_DOC=/opt/secagents/TOOLKIT.md
+
+WORKDIR /workspace
