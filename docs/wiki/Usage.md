@@ -1,125 +1,109 @@
-# Usage
+# 🎮 Operational Command Guide
 
-This page describes **commands**, **targets**, **LLM backends**, and **report outputs**.
-
----
-
-## Command reference
-
-Run with `python -m secagents <command>` (recommended) or `secagents <command>` if your `PATH` includes the Scripts directory.
-
-| Command | Purpose |
-|--------|---------|
-| `version` | Print installed version |
-| `doctor` | Verify Docker CLI + daemon |
-| `setup-ollama` | Pull Ollama image, start container, pull a model |
-| `scan <target>` | Full multi-agent scan (local path, git URL, or HTTPS URL) |
-| `ci <path>` | CI mode: write artifacts + exit non-zero on severity threshold |
-
-Use `--help` on any command:
-
-```bash
-python -m secagents scan --help
-```
+Execute and orchestrate your SecAgents squad. This guide covers **commands**, **target vectors**, **LLM intelligence**, and **mission outputs**.
 
 ---
 
-## Scan targets
+## 🛠️ Command Reference
 
-| Kind | Example | Notes |
-|------|---------|--------|
-| Local | `python -m secagents scan ./myapp` | Directory on disk |
-| Git repo | `python -m secagents scan https://github.com/org/repo --kind repo` | Cloned to a temp dir |
-| Live URL | `python -m secagents scan https://example.com --kind url` | Probe + synthetic workspace; often needs `--allow-network` |
+Execute commands using the `secagents` CLI or `python -m secagents` (recommended for environment consistency).
 
-`--kind auto` guesses from the target string.
+| Command | Protocol | Action |
+| :--- | :--- | :--- |
+| **`version`** | `secagents version` | Display current build and orchestration version. |
+| **`doctor`** | `secagents doctor` | Systems diagnostic for Docker and environment health. |
+| **`setup-ollama`** | `secagents setup-ollama` | Provision a local Ollama instance for private AI. |
+| **`scan`** | `secagents scan <target>` | Launch a full multi-agent red-team operation. |
+| **`ci`** | `secagents ci <path>` | Execute a gatekeeper scan for CI/CD pipelines. |
+
+> [!TIP]
+> Use the `--help` flag on any command for detailed parameter documentation:
+> ```bash
+> secagents scan --help
+> ```
 
 ---
 
-## LLM providers
+## 🎯 Target Vectors
 
-### OpenAI
+SecAgents can engage targets across multiple environments:
 
+| Vector | Command Example | Deployment Notes |
+| :--- | :--- | :--- |
+| **Local Path** | `secagents scan ./myapp` | Direct file-system engagement. |
+| **Git Repository** | `secagents scan <git-url> --kind repo` | Clones to a high-speed temporary workspace. |
+| **Live URL** | `secagents scan <url> --kind url` | Probe-based engagement; usually requires `--allow-network`. |
+
+---
+
+## 🧠 LLM Intelligence Engines
+
+Configure your squad's cognitive backend:
+
+### 🔵 OpenAI (Global Intelligence)
 ```bash
 export OPENAI_API_KEY=sk-...
-python -m secagents scan ./app --provider openai --model gpt-4o-mini --out-dir ./reports
+secagents scan ./app --provider openai --model gpt-4o-mini
 ```
 
-### Anthropic
-
+### 🟠 Anthropic (Advanced Reasoning)
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
-python -m secagents scan ./app --provider anthropic --model claude-3-5-sonnet-latest --out-dir ./reports
+secagents scan ./app --provider anthropic --model claude-3-5-sonnet-latest
 ```
 
-### Ollama (local)
+### 🟢 Ollama (Private Operations)
+```bash
+secagents setup-ollama --model llama3.2
+secagents scan ./app --provider ollama --model llama3.2 --setup-local-ai
+```
+
+---
+
+## ⚡ Team Orchestration
+
+- **`--team` / `--no-team`**: Switch between the full **multi-agent pipeline** and a single-orchestrator operation.
+- **`--parallel-specialists`**: Adjust the intensity of the opening phase.
+  - `1`: Serial engagement.
+  - `2`: **Code Analyst** + **OSINT Surface**.
+  - `3+`: Adds **Infra/Config** and beyond in a parallel wave.
 
 ```bash
-python -m secagents setup-ollama --model llama3.2
-python -m secagents scan ./app --provider ollama --model llama3.2 --setup-local-ai --out-dir ./reports
+secagents scan ./app --team --parallel-specialists 6 --max-turns 32
 ```
 
-Override base URL if needed:
+---
+
+## 📊 Mission Outputs (`--out-dir`)
+
+Findings are gathered into a structured intelligence package:
+
+| Artifact | Intelligence Type | Contents |
+| :--- | :--- | :--- |
+| **`report.md`** | **Debrief** | Human-readable report, Mermaid flows, and VRT mappings. |
+| **`report.json`** | **Data** | Full machine-readable payload for downstream tools. |
+| **`knowledge_graph.json`** | **Relations** | Relational map of agents, assets, and findings. |
+| **`autofix.md`** | **Neutralization** | Aggregated, battle-tested unified diff patches. |
+
+---
+
+## ⛓️ CI/CD Gatekeeper
+
+Use the `ci` command to enforce security standards in your automation:
 
 ```bash
-python -m secagents scan ./app --provider ollama --ollama-url http://127.0.0.1:11434
+secagents ci . --fail-on high --out-dir sec_scan_results
 ```
 
----
-
-## Team mode and parallel specialists
-
-- **`--team` / `--no-team`:** Multi-agent pipeline vs single-orchestrator fast path.
-- **`--parallel-specialists`:** `1` = no parallel opening; `2` = Code + OSINT; **`3+`** adds **Infra/Config** in parallel (opening phase).
-
-Example:
-
-```bash
-python -m secagents scan ./app --team --parallel-specialists 3 --max-turns 28 --out-dir ./reports
-```
+- Returns **Exit Code 1** if findings at or above `--fail-on` (default: high) are discovered.
 
 ---
 
-## Sandbox and timeouts
+## 🏁 Next Protocol
 
-- **`--sandbox-timeout`** — seconds for each sandbox command (default 300).
-- **`--sandbox-shm`** — Docker `--shm-size` (default `1g`; helps Chromium).
+- **[GitHub Integration](GitHub-Integration.md)**: Automate your squad.
+- **[Operations & Hardening](Operations.md)**: Secure your environment.
 
----
-
-## Outputs (`--out-dir`)
-
-| File | Content |
-|------|---------|
-| `report.md` | Human-readable report, Mermaid orchestration, findings |
-| `report.json` | Machine-readable full payload |
-| `knowledge_graph.json` | Nodes/edges for findings and agents |
-| `autofix.md` | Aggregated patches when remediation ran |
-
----
-
-## CI gate
-
-```bash
-python -m secagents ci . --fail-on high --out-dir secagents-report
-```
-
-Exit code **1** if any finding is at or above `--fail-on` severity.
-
----
-
-## Environment variables
-
-Prefix **`SECAGENTS_`** maps to `AppConfig` (see `src/secagents/config.py`). Common examples:
-
-- `SECAGENTS_MODEL`
-- `SECAGENTS_MAX_AGENT_TURNS`
-- `SECAGENTS_PARALLEL_SPECIALISTS`
-
-Standard keys **`OPENAI_API_KEY`** and **`ANTHROPIC_API_KEY`** are also read.
-
----
-
-## Next
-
-[GitHub integration](GitHub-Integration.md) · [Operations](Operations.md)
+<div align="center">
+  <sub>SecAgents Operational Command</sub>
+</div>

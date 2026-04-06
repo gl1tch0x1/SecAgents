@@ -1,23 +1,34 @@
-# SecAgents Wiki (documentation)
+# 🏛️ SecAgents Wiki
 
-Welcome to the **SecAgents** knowledge base. This folder is the **source of truth** for long-form docs. You can:
+Welcome to the **SecAgents** core knowledge base. This repository is the **source of truth** for long-form engineering and security documentation.
 
-- Browse it **on GitHub** under `docs/wiki/` in the repository.
-- **Copy these pages** into the repository’s [GitHub Wiki](https://docs.github.com/en/communities/documenting-your-project-with-wikis/about-wikis) if you prefer the Wiki UI (create pages manually or clone the wiki git and paste).
+---
 
-## Wiki map
+## 🗺️ Documentation Map
 
-| Page | Description |
-|------|-------------|
-| [Installation](Installation.md) | Prerequisites, install from Git, PyPI-style layout, verify Docker |
-| [Usage](Usage.md) | `scan`, `ci`, `setup-ollama`, targets, LLM providers, outputs |
-| [GitHub integration](GitHub-Integration.md) | Actions, secrets, variables, forks, branch protection |
-| [Operations](Operations.md) | Hardening, cost/latency, troubleshooting, rebuild sandbox image |
+Explore the depths of the SecAgents architecture and operational protocols:
 
-## Quick links
+| Module | Purpose | Focus |
+| :--- | :--- | :--- |
+| **[🚀 Installation](Installation.md)** | Getting Started | Prerequisites, Docker setup, and environment verification. |
+| **[⚙️ Usage Guide](Usage.md)** | Operations | CLI reference, LLM provider switching, and targets. |
+| **[🔗 GitHub Integration](GitHub-Integration.md)** | Automation | CI/CD pipelines, secret management, and Actions. |
+| **[🛡️ Operations & Hardening](Operations.md)** | Infrastructure | Cost optimization, latency, and sandbox security. |
 
-- Repository **README** (overview): `../../README.md`
-- **Security** policy: `../../SECURITY.md`
-- **Contributing**: `../../CONTRIBUTING.md`
+---
 
-> **Replace `YOUR_ORG/secagents`** in `pyproject.toml` `[project.urls]` with your real GitHub path after you publish the repo.
+## ⚡ Quick Links
+
+- **[🤖 Main README](../../README.md)**: Operation overview and squad briefing.
+- **[🔒 Security Policy](../../SECURITY.md)**: Responsible disclosure and vulnerability handling.
+- **[🤝 Contributing](../../CONTRIBUTING.md)**: Agentic development guidelines.
+
+---
+
+> [!TIP]
+> Keep your mission environment updated! Always rebuild your sandbox image after core updates:
+> `docker rmi secagents-sandbox:latest`
+
+<div align="right">
+  <sub>SecAgents Operations Command</sub>
+</div>

@@ -1,96 +1,76 @@
-# GitHub integration
+# 🔗 GitHub Automation Protocol
 
-Use this guide to deploy SecAgents **CI scanning** on GitHub and keep it **maintainable and secure**.
-
----
-
-## Step 1 — Add workflow files to your repo
-
-Copy from this project into **your** repository:
-
-| File | Role |
-|------|------|
-| `.github/workflows/ci.yml` | **Lint + pytest** on every push/PR (no Docker/LLM) |
-| `.github/workflows/secagents.yml` | **Security scan** job (Docker + Ollama or cloud LLM) |
-| `.github/dependabot.yml` | Weekly updates for Actions + pip |
-
-Commit to `main` (or your default branch).
+Deploy and orchestrate SecAgents within your CI/CD lifecycle. This guide covers **workflow deployment**, **secret management**, and **automated security gates**.
 
 ---
 
-## Step 2 — Configure branch protection (recommended)
+## 🏗️ Phase 1: Workflow Deployment
 
-1. Repository **Settings → Branches → Branch protection** for `main`.
-2. Enable **Require status checks to pass** before merge.
-3. Select required checks, e.g.:
-   - `CI / lint-test` (from `ci.yml`)
-   - Optionally `SecAgents Scan / scan` if you want PRs blocked on findings (can be noisy).
+Provision your repository with the following automation blocks. Copy these from the core repo:
 
----
+| Lifecycle Block | Security Role | Trigger |
+| :--- | :--- | :--- |
+| **`.github/workflows/ci.yml`** | **Lint & Unit Tests** | Every Push / PR |
+| **`.github/workflows/secagents.yml`** | **Autonomous Security Scan** | PR / Manual |
+| **`.github/dependabot.yml`** | **Dependency Hardening** | Weekly |
 
-## Step 3 — Secrets and variables
-
-### Secrets (Settings → Secrets and variables → Actions)
-
-| Secret | When to set |
-|--------|-------------|
-| `OPENAI_API_KEY` | Prefer cloud OpenAI in CI (skips local Ollama pull for the scan step logic) |
-| `ANTHROPIC_API_KEY` | Prefer Anthropic in CI |
-
-If **neither** is set, the workflow uses **Ollama** inside the job (Docker).
-
-### Variables (optional)
-
-| Variable | Purpose |
-|----------|---------|
-| `SECAGENTS_OLLAMA_MODEL` | Model tag for `ollama pull` (default `llama3.2` in script) |
-| `SECAGENTS_PARALLEL_SPECIALISTS` | `2` or `3` (adds Infra/Config parallel track when `3+`) |
-
-### Cloud model IDs (workflow env)
-
-You can set in the workflow file or as env:
-
-- `SECAGENTS_OPENAI_MODEL` (default `gpt-4o-mini` in workflow)
-- `SECAGENTS_ANTHROPIC_MODEL` (default `claude-3-5-sonnet-latest` in workflow)
+> [!IMPORTANT]
+> Ensure all workflow files are committed to your default branch (usually `main`) to activate the automated security pipeline.
 
 ---
 
-## Step 4 — Fork pull requests
+## 🛡️ Phase 2: Security & Intelligence
 
-Secrets from the **base** repository are **not** exposed to workflows from **fork** PRs the same way as internal PRs. Expect:
+Choose your intelligence tier for the automated scanner:
 
-- Fork PRs may run **without** cloud keys → falls back to **Ollama** path (still needs Docker in the job).
-- For sensitive keys, use **environments** with **required reviewers** or run scans only on `push` to default branch.
+### 🔑 Secret Management
+Configure these in **Settings → Secrets and variables → Actions**:
 
-Adjust triggers in `secagents.yml` if you want `pull_request_target` (advanced; understand the security implications before using it).
+| Interface | Purpose | Strategy |
+| :--- | :--- | :--- |
+| `OPENAI_API_KEY` | **Cloud Intelligence** | Bypasses local Ollama pull for high-speed scanning. |
+| `ANTHROPIC_API_KEY` | **Deep Reasoning** | Bypasses local Ollama pull for complex scenarios. |
 
----
+- If **no keys** are detected, the pipeline automatically spins up a local **Ollama** instance inside the runner.
 
-## Step 5 — Artifacts
+### ⚙️ Operational Variables (Optional)
+Configure these in **Settings → Secrets and variables → Actions → Variables**:
 
-Each run uploads **`secagents-report`** as a workflow artifact (even on failure when configured). Download from the Actions run page for `report.md` / `report.json`.
-
----
-
-## Step 6 — Publish URLs in `pyproject.toml`
-
-Replace placeholders:
-
-```toml
-[project.urls]
-Homepage = "https://github.com/YOUR_ORG/secagents"
-```
-
-with your real GitHub path so PyPI and tooling show correct links after release.
+| Variable | Intelligence Control | Default |
+| :--- | :--- | :--- |
+| `SECAGENTS_OLLAMA_MODEL` | Local model tag for `ollama pull`. | `llama3.2` |
+| `SECAGENTS_PARALLEL_SPECIALISTS` | Concurrent specialist count (`3+` for Infra). | `2` |
 
 ---
 
-## Step 7 — Enable private vulnerability reporting (optional)
+## ⚡ Phase 3: Gatekeeper Configuration
 
-Repository **Settings → Security** → enable **Private vulnerability reporting** and point reporters to `SECURITY.md`.
+Enforce a "Secure by Default" merge strategy:
+
+1.  Navigate to **Settings → Branches → Branch protection**.
+2.  Target your protected branch (e.g., `main`).
+3.  Enable **"Require status checks to pass before merging"**.
+4.  Mandate these checks:
+    - `CI / lint-test`: Ensures codebase integrity.
+    - `SecAgents Scan / scan`: Blocks PRs with unresolved high-severity findings.
 
 ---
 
-## Next
+## 📦 Phase 4: Intelligence Artifacts
 
-[Operations](Operations.md) · [Installation](Installation.md)
+Every mission generates a **`secagents-report`** package. Access it from the **Actions** execution page:
+
+- **`report.md`**: Human-readable debrief for reviewers.
+- **`report.json`**: Machine-readable data for external aggregators.
+- **`autofix.md`**: Unified diffs for rapid remediation.
+
+---
+
+## 🏁 Next Protocol
+
+- **[Operations & Hardening](Operations.md)**: Advance your deployment.
+- **[Installation](Installation.md)**: Rebuild your environment.
+
+<div align="center">
+  <sub>SecAgents Automation Command</sub>
+</div>

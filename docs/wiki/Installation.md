@@ -1,117 +1,104 @@
-# Installation
+# 🚀 Installation Operation
 
-Follow these steps **in order**. SecAgents requires **Python 3.11+** and a working **Docker** daemon (for the sandbox and optional Ollama).
-
----
-
-## Step 1 — Install Docker
-
-1. Install [Docker Engine](https://docs.docker.com/engine/install/) or [Docker Desktop](https://docs.docker.com/desktop/) for your OS.
-2. Start the daemon and confirm it runs:
-   ```bash
-   docker version
-   ```
-3. On Linux, ensure your user can run Docker (e.g. `docker` group) without sudo if you use a non-root setup.
+Follow these protocols **in sequence** to deploy your SecAgents environment. SecAgents requires **Python 3.11+** and a high-performance **Docker** daemon.
 
 ---
 
-## Step 2 — Install Python
+## 🏗️ Phase 1: Core Dependencies
 
-1. Install **Python 3.11 or newer** from [python.org](https://www.python.org/downloads/) or your OS package manager.
-2. Confirm:
-   ```bash
-   python --version
-   ```
-   or `python3 --version`.
+### 🐳 Step 1: Docker Infrastructure
+SecAgents relies on Docker for its fortification (sandbox) and local intelligence (Ollama).
+1.  Install **[Docker Engine](https://docs.docker.com/engine/install/)** or **[Docker Desktop](https://docs.docker.com/desktop/)**.
+2.  Initialize the daemon and verify:
+    ```bash
+    docker version
+    ```
+3.  **Linux Users**: Ensure your user is in the `docker` group to avoid `sudo` conflicts.
 
----
-
-## Step 3 — Clone the repository (GitHub deployment)
-
-1. Clone **your** fork or the upstream repo:
-   ```bash
-   git clone https://github.com/YOUR_ORG/secagents.git
-   cd secagents
-   ```
-2. (Recommended) Create a virtual environment:
-   ```bash
-   python -m venv .venv
-   ```
-3. Activate it:
-   - **Linux / macOS:** `source .venv/bin/activate`
-   - **Windows (cmd):** `.venv\Scripts\activate.bat`
-   - **Windows (PowerShell):** `.venv\Scripts\Activate.ps1`
+### 🐍 Step 2: Python Environment
+1.  Install **Python 3.11 or newer** from **[python.org](https://www.python.org/downloads/)**.
+2.  Confirm deployment:
+    ```bash
+    python --version
+    ```
 
 ---
 
-## Step 4 — Install SecAgents
+## ⚡ Phase 2: Deployment
 
-From the repository root (where `pyproject.toml` lives):
-
+### 📂 Step 3: Clone the Nexus
+Clone the repository to your local operations center:
 ```bash
-python -m pip install -U pip
-python -m pip install -e .
+git clone https://github.com/gl1tch0x1/SecAgents.git
+cd SecAgents
 ```
 
-For development (lint + tests):
-
+### 🛡️ Step 4: Virtual Fortification
+We highly recommend using a virtual environment to isolate your security tools:
 ```bash
-python -m pip install -e ".[dev]"
+python -m venv .venv
+
+# Activate (Linux / macOS)
+source .venv/bin/activate
+
+# Activate (Windows)
+.venv\Scripts\activate
+```
+
+### ⚙️ Step 5: Install SecAgents
+Deploy the agentic framework in editable mode:
+```bash
+pip install -e .
+
+# Optional: Development Toolkit (Lint + Tests)
+pip install -e ".[dev]"
 ```
 
 ---
 
-## Step 5 — Verify the CLI
+## 🩺 Phase 3: Systems Verification
 
-Because `secagents` may not be on `PATH` on all systems, prefer the module form:
-
-```bash
-python -m secagents version
-python -m secagents doctor
-```
-
-- **`version`** — prints the package version.
-- **`doctor`** — checks that the Docker CLI can talk to the daemon. If this fails, fix Docker before scanning.
-
----
-
-## Step 6 — First sandbox image build
-
-The first scan **builds** the local image `secagents-sandbox:latest` from `src/secagents/data/Dockerfile.sandbox`. That can take several minutes.
-
-To force a rebuild after upgrading SecAgents:
+Validate your installation using the built-in diagnostic tools:
 
 ```bash
-docker rmi secagents-sandbox:latest
+secagents version
+secagents doctor
 ```
 
-Then run any command that triggers a scan.
+- **`version`**: Confirms the package build.
+- **`doctor`**: High-level diagnostic for Docker connectivity and environment health.
 
 ---
 
-## Optional — Ollama (local LLM in Docker)
+## 🏗️ Phase 4: Sandbox Initialization
 
-1. Ensure Docker is running.
-2. Run:
-   ```bash
-   python -m secagents setup-ollama --model llama3.2
-   ```
-3. This pulls `ollama/ollama`, starts a container, and pulls model weights.
+The first operation will automatically **build** the `secagents-sandbox:latest` image. This is a one-time intensive process.
 
----
-
-## PyPI / private index (future)
-
-When you publish to an index, consumers will use:
-
-```bash
-pip install secagents
-```
-
-Until then, **`pip install -e .` from a git clone** is the supported install path for this project layout.
+> [!TIP]
+> **Rebuild Protocol**: If you update the core codebase or payload library, force a sandbox refresh:
+> ```bash
+> docker rmi secagents-sandbox:latest
+> ```
 
 ---
 
-## Next
+## 🟢 Optional: Local Private AI (Ollama)
 
-Continue to [Usage](Usage.md) and [GitHub integration](GitHub-Integration.md).
+For air-gapped or private missions, deploy a local LLM:
+1.  Ensure Docker is active.
+2.  Provision the instance:
+    ```bash
+    secagents setup-ollama --model llama3.2
+    ```
+3.  This command handles image pulling, container lifecycle, and model weight ingestion.
+
+---
+
+## 🏁 Next Mission
+
+- Learn to execute scans in **[Usage Guide](Usage.md)**.
+- Automate your security and CI/CD in **[GitHub Integration](GitHub-Integration.md)**.
+
+<div align="center">
+  <sub>SecAgents Deployment Manual</sub>
+</div>

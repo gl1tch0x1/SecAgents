@@ -1,82 +1,79 @@
-# Operations
+# 🛡️ Operations & Hardening Protocol
 
-Production-oriented notes for running SecAgents **safely** and **efficiently**.
-
----
-
-## Threat model and scope
-
-- SecAgents runs **LLM-driven** commands inside a **Docker sandbox** with the workspace mounted **read-only**.
-- **Network** is **off** by default; URL targets may require `--allow-network`.
-- Treat the tool as **powerful**: only run against assets you are **authorized** to test.
+Production-grade deployment and maintenance strategies for SecAgents. Ensure your squad operates at peak efficiency while maintaining a secure infrastructure.
 
 ---
 
-## Cost and latency
+## 🔐 Threat Model & Scope
 
-- **Cloud LLMs** (OpenAI/Anthropic): every scan is billable; reduce `--max-turns`, `--parallel-specialists`, or run `ci` with lower limits.
-- **Ollama**: GPU/CPU and disk for models; CI jobs pull models per runner unless cached (ephemeral runners often re-pull).
-- **Docker image build**: First `secagents-sandbox` build is slow; cache on self-hosted runners if needed.
+- **Sandbox Fortification**: All LLM-driven commands are executed within a **hardened Docker sandbox**.
+- **Isolation Strategy**: The target workspace is mounted **read-only** by default to prevent accidental data mutation.
+- **Network Policy**: Outbound network access is **disabled** by default. Mission-critical URL targets require the `--allow-network` override.
+
+> [!CAUTION]
+> Treat SecAgents as a high-impact offensive tool. Only deploy against assets within your **authorized testing perimeter**.
 
 ---
 
-## Rebuilding the sandbox image
+## 💸 Optimization & Latency
 
-After upgrading SecAgents or changing `Dockerfile.sandbox`:
+Scale your intelligence based on your operational budget:
+
+- **Cloud Intelligence (SaaS)**: Every mission consumes API tokens. Optimize by adjusting `--max-turns` or choosing cost-effective models like `gpt-4o-mini`.
+- **Local Intelligence (Ollama)**: Requires significant GPU/CPU resources. Ensure your runners are provisioned for high-compute tasks.
+- **Sandbox Build**: The initial build of `secagents-sandbox` is resource-heavy. We recommend caching this image on self-hosted runners.
+
+---
+
+## 🏗️ Rebuilding the Bastion
+
+Update your sandbox environment after every core upgrade or `Dockerfile.sandbox` modification:
 
 ```bash
+# Purge the old construct
 docker rmi secagents-sandbox:latest
+
+# The next mission will automatically initialize a fresh build.
 ```
 
-Next scan rebuilds the image.
+---
+
+## 📋 Troubleshooting Matrix
+
+| Symptom | Intelligence Check | Resolution |
+| :--- | :--- | :--- |
+| `docker not found` | Environment PATH | Install Docker and verify binary availability. |
+| `daemon connection failure` | Service Status | Ensure Docker Desktop or the system service is active. |
+| `module not found` | Python Context | Execute via `python -m secagents` within your active venv. |
+| `Ollama timeout` | Network / Firewall | Verify `SECAGENTS_OLLAMA_BASE_URL` and container status. |
+| `Parse syntax errors` | Model Reasoning | Upgrade to a higher-tier model or reduce `--temperature`. |
 
 ---
 
-## Monorepos and context limits
+## 📂 Data Retention & Secrecy
 
-Large trees are **sampled** for LLM context. Tune (environment):
-
-- `SECAGENTS_MAX_FILE_BYTES`
-- `SECAGENTS_MAX_FILES_IN_CONTEXT`
-
-Increase gradually; very high values increase token cost and failure rates.
+- **Artifact Sensitivity**: Engagement reports may contain sensitive code snippets and command logs.
+- **Access Control**: Treat all reports as **Internal/Confidential** data.
+- **Retention Policy**: Configure your repository's Action settings to automatically purge artifacts based on your organization's compliance requirements.
 
 ---
 
-## Troubleshooting
+## 🔄 Upgrade Protocol
 
-| Symptom | Check |
-|---------|--------|
-| `docker: command not found` | Install Docker; add to PATH |
-| `Cannot connect to Docker daemon` | Start Docker Desktop / service |
-| `No module named secagents` | Use `python -m secagents` from venv where you ran `pip install -e .` |
-| Ollama connection errors | `setup-ollama`, firewall, `SECAGENTS_OLLAMA_BASE_URL` |
-| Empty or parse errors in transcript | Model too small or strict JSON; try stronger model or lower temperature |
+Follow these steps to synchronize with the latest SecAgents intelligence:
 
----
-
-## Logging and retention
-
-- Reports may contain **snippets of code** and **command output**; treat artifacts as **internal**.
-- Set artifact **retention** in repository Actions settings if required by policy.
+1.  **Pull** the latest core intelligence: `git pull origin main`.
+2.  **Synchronize** dependencies: `pip install -e .`.
+3.  **Refresh** the bastion: `docker rmi secagents-sandbox:latest`.
+4.  **Validate** systems: `python -m pytest tests/ -q`.
 
 ---
 
-## Roadmap (enterprise hardening)
+## 🏁 Missions Completed
 
-Common next steps for larger orgs: **SARIF** export for GitHub Code Scanning, **OIDC** for cloud model auth, **SBOM** generation for releases, **signed tags** and **provenance** (SLSA). This OSS baseline focuses on a clear sandbox boundary and auditable reports.
+- **[Main README](../../README.md)**: Return to Command Center.
+- **[Home Guide](Home.md)**: Explore the Wiki.
 
----
-
-## Upgrades
-
-1. Pull latest `main`.
-2. `pip install -e ".[dev]"` again if dependencies changed.
-3. Rebuild sandbox image (see above).
-4. Run `python -m pytest tests/ -q` locally.
-
----
-
-## Back to
-
-[Home](Home.md) · [GitHub integration](GitHub-Integration.md)
+<div align="center">
+  <sub>SecAgents Operations Command</sub>
+</div>
