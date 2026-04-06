@@ -11,34 +11,59 @@ Python CLI that runs **autonomous multi-agent red teams** against your code—bu
 ### Architectural Workflow
 
 ```mermaid
-flowchart TD
-    subgraph Config
-        AppConfig[Config & CLI Arguments]
-        Payloads[Sandbox Payloads / XSS, SQLi, etc.]
+flowchart TB
+    %% ── Layer 0: Configuration ───────────────────────────────────────────
+    subgraph CFG["⚙️  Configuration Layer"]
+        direction LR
+        AC["🛠️ AppConfig — CLI flags and env vars"]
+        PL["📦 Payload Library — /opt/secagents/payloads/\nxss · sqli · lfi · ssrf · xxe · idor · jwt · ssti · open_redirect · prompt_injection"]
     end
 
-    subgraph Agents["Parallel Specialists"]
-        CA[Code Analyst]
-        OS[OSINT Surface]
-        IC[Infra/Config]
-        IA[Intel Agent]
-        IDOR[IDOR Agent]
-        OA[OAuth Agent]
-        RC[Race Cond Agent]
-        LLM[LLM Feature Agent]
+    %% ── Layer 1: Parallel Specialist Wave ────────────────────────────────
+    subgraph PSW["⚡  Parallel Specialist Wave — ThreadPoolExecutor"]
+        subgraph STATIC["🔍 Static Analysis"]
+            direction TB
+            CA["Code Analyst"]
+            OS["OSINT Surface"]
+            IC["Infra / Config"]
+        end
+        subgraph BBH["🎯 Bug Bounty Hunters"]
+            direction TB
+            ID["IDOR Agent"]
+            OA["OAuth Agent"]
+            RC["Race Condition"]
+        end
+        subgraph INTEL["🌐 Intelligence Gathering"]
+            direction TB
+            IA["Intel Agent — NVD and GitHub Advisories"]
+            LF["LLM Feature Agent — Prompt Injection"]
+        end
     end
 
-    AppConfig --> Agents
-    AppConfig --> Payloads
-    Payloads -.-> Agents
+    %% ── Layer 2: Sequential Pipeline ─────────────────────────────────────
+    subgraph PIPE["🔗  Sequential Exploitation Pipeline"]
+        direction LR
+        RN["🗺️ Recon"] --> EX["💥 Exploit / PoC"] --> VA["✅ Validator"] --> RM["🩹 Remediator"]
+    end
 
-    Agents --> Recon[Recon Agent]
-    Recon --> Exploit[Exploit / PoC]
-    Exploit --> Validator[Validator]
-    Validator --> Remediator[Remediator]
-    
-    Exploit --> KB[(Knowledge Graph)]
-    Validator --> KB
+    %% ── Layer 3: Outputs ──────────────────────────────────────────────────
+    subgraph OUT["📊  Outputs"]
+        direction LR
+        KB[("🧠 Knowledge Graph")]
+        RP["📝 report.md — Mermaid · HackerOne · Bugcrowd"]
+        FX["🔧 autofix.md — Unified diff patches"]
+    end
+
+    %% ── Connections ───────────────────────────────────────────────────────
+    AC -->|configures| PSW
+    PL -.->|"payloads loaded by agents"| PSW
+
+    PSW -->|"parallel findings brief"| PIPE
+
+    EX -->|documents| KB
+    VA -->|validates| KB
+    KB --> RP
+    RM --> FX
 ```
 
 - **Agentic toolkit (sandbox image):** **HTTP proxy** (mitmproxy when install succeeds + `/opt/secagents/bin/mitm_sniff.sh`), **headless Chromium** (`secagents-chrome` per URL / “tab”), **batch shells**, **Python + bandit**, `rg`/`find`/`nmap`/`curl`/`openssl`/`nc`/`socat`, plus JRE/Node/Ruby/Go. Read-only `/workspace`; **no network** by default (enable for URL targets). **Rebuild** the image after upgrades: `docker rmi secagents-sandbox:latest` then run a scan.

@@ -9,3 +9,5 @@ build/
 *.egg-info/
 .env
 secagents-report/
+# Temporary payload sync directory (see build_payloads.py)
+payload_tmp/
