@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Shield.png" alt="Operations" width="100"/>
-
-# 🛡️ HARDENING & OPERATIONS
+```text
+ 🛡️ HARDENING & OPERATIONS
+```
 
 **Strategic Maintenance & Environment Security.**
 

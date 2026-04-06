@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Link.png" alt="Automation" width="100"/>
-
-# 🔗 AUTOMATION PROTOCOLS
+```text
+ 🔗 AUTOMATION PROTOCOLS
+```
 
 **GitHub Integration & CI/CD Fortification.**
 
-*Orchestrate your squad within the development lifecycle.*
+*Orchestrate your operatives within the development lifecycle.*
 
 </div>
 

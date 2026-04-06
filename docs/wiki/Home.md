@@ -1,41 +1,41 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Buildings/Bank.png" alt="Wiki" width="100"/>
+```text
+ 💀 SECAGENTS INTELLIGENCE ARCHIVE
+```
 
-# 🏛️ SECAGENTS INTELLIGENCE ARCHIVE
+**WELCOME TO THE COMMAND NEXUS.**
 
-**Welcome to the official SecAgents Knowledge Base.**
-
-*This archive contains the definitive protocols for deploying, orchestrating, and mastering the SecAgents framework.*
+*Strategic Protocols for Multi-Agent Offensive Operations.*
 
 </div>
 
 ---
 
-## 🗺️ NAVIGATIONAL DATA
+## 🗺️ TACTICAL MAP (NAVIGATIONAL DATA)
 
-Explore the core modules of the SecAgents ecosystem:
+Explore the core operational modules of the SecAgents ecosystem:
 
-| MODULE | MISSION | FOCUS |
+| MODULE | MISSION ROLE | FOCUS AREA |
 | :--- | :--- | :--- |
-| **[🚀 Installation](Installation.md)** | Deployment Phase | OS-specific setup, Docker initialization, and health checks. |
-| **[⚙️ Usage Protocols](Usage.md)** | Operational Command | CLI flags, target engagement, and LLM backend tuning. |
-| **[🔗 GitHub Automation](GitHub-Integration.md)** | CI/CD Fortification | Automated security gates, secrets, and repository hardening. |
-| **[🛡️ Operations & Hardening](Operations.md)** | Resilience | Cost optimization, sandbox policy, and supply-chain security. |
+| **[🚀 OPERATIONAL PRIMING](Installation.md)** | Deployment Phase | OS-specific setup, Sandbox fortification, and Health checks. |
+| **[⚙️ STRIKE PROTOCOLS](Usage.md)** | Field Operations | CLI flags, Target engagement, and Intelligence backend tuning. |
+| **[🔗 AUTOMATED PERSISTENCE](GitHub-Integration.md)** | CI/CD Infiltration | Automated security gates, Secret management, and Persistence. |
+| **[🛡️ DEFENSIVE EXIT & HARDENING](Operations.md)** | Resilience | Cost optimization, Sandbox isolation policy, and Supply-chain. |
 
 ---
 
-## ⚡ RAPID RESPONSE LINKS
+## ⚡ RAPID STRIKE LINKS
 
-- **[🤖 Main Command Center](../../README.md)**: Project overview and squad briefing.
-- **[🔒 Security Mandate](../../SECURITY.md)**: Responsible disclosure and vulnerability protocols.
-- **[🤝 Agentic Contribution](../../CONTRIBUTING.md)**: Protocol for technical collaboration.
+- **[🔱 MAIN COMMAND CENTER](../../README.md)**: Operation overview and operative briefings.
+- **[🔒 SECURITY MANDATE](../../SECURITY.md)**: Vulnerability disclosure and operational scope.
+- **[🤝 ELITE CONTRIBUTION](../../CONTRIBUTING.md)**: Joining the offensive development squad.
 
 ---
 
-> [!TIP]
-> **INTELLIGENCE GAP?**: If you encounter missing context or outdated protocols, please initiate a pull request to the `docs/wiki/` directory in the main branch.
+> [!CAUTION]
+> **OPERATIONAL SECURITY (OPSEC)**: Every mission produces high-sensitivity intelligence artifacts. Treat `--out-dir` content as **Internal Restricted** data.
 
 <div align="right">
-  <sub>SECAGENTS OPERATIONS COMMAND</sub>
+  <sub>SECAGENTS OFFENSIVE AI COMMAND</sub>
 </div>

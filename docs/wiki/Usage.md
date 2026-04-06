@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Video%20Game.png" alt="Usage" width="100"/>
-
-# 🎮 OPERATIONAL COMMAND
+```text
+ 🎮 OPERATIONAL COMMAND
+```
 
 **Execution Protocols & Mission Controls.**
 
@@ -16,7 +16,7 @@
 
 Initialize commands using the `secagents` binary or `python -m secagents`.
 
-| COMMAND | MISSION |
+| COMMAND | MISSION ROLE |
 | :--- | :--- |
 | **`version`** | Display current build and orchestration version. |
 | **`doctor`** | Diagnostic run for Docker and environment health. |
@@ -72,8 +72,8 @@ secagents scan ./app --provider ollama --model llama3.2 --setup-local-ai
 
 - **`--team`**: Deploy the full **multi-agent pipeline** (Recon → Exploit → Validator → Remediator).
 - **`--parallel-specialists`**: Scale the intensity of the opening intelligence wave.
-  - `2`: **Code Analyst** + **OSINT Surface**.
-  - `3+`: Parallel activation of **Infra/Config** and specialized hunters.
+  - `2`: **GHOST-ANALYST** + **SURFACE-MAP**.
+  - `3+`: Parallel activation of **INFRA-BASE** and specialized hunters.
 
 ```bash
 secagents scan ./app --team --parallel-specialists 6 --max-turns 32

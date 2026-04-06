@@ -1,18 +1,18 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Rocket.png" alt="Installation" width="100"/>
-
-# 🚀 DEPLOYMENT PROTOCOLS
+```text
+ 🚀 DEPLOYMENT PROTOCOLS
+```
 
 **SecAgents Initialization & Setup.**
 
-*Deploy the squad, fortify the sandbox, and prepare for multi-agent engagement.*
+*Deploy the squad, fortify the sandbox, and prepare for tactical engagement.*
 
 </div>
 
 ---
 
-## 🏗️ PHASE 1: REQUISITE INFRASTRUCTURE
+## 🏗️ PHASE 1: REQUISITE STACK
 
 Execute these procedures to ensure the tactical environment is initialized.
 
@@ -37,7 +37,7 @@ cd SecAgents
 ```
 
 ### 🛡️ STEP 4: VIRTUAL ISOLATION
-We recommend a dedicated virtual environment for all security operations:
+We recommend a dedicated virtual environment for all offensive operations:
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
@@ -68,7 +68,7 @@ secagents doctor
 
 ---
 
-## 🟢 OPTIONAL: PRIVATE AI COMAHND (OLLAMA)
+## 🟢 OPTIONAL: PRIVATE AI COMMAND (OLLAMA)
 
 For full data sovereignty, deploy a local LLM instance:
 
