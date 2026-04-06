@@ -1,12 +1,55 @@
-# SecAgents
+<div align="center">
 
-[![CI](https://github.com/YOUR_ORG/secagents/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_ORG/secagents/actions/workflows/ci.yml)
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Robot.png" alt="SecAgents" width="80"/>
 
-Python CLI that runs **autonomous multi-agent red teams** against your code—built for developers and security teams who want **fast, PoC-backed testing** without full manual pentest overhead or static-analysis noise.
+# ⚡ SecAgents
 
-**Full documentation (wiki-style):** [docs/wiki/Home.md](docs/wiki/Home.md) — installation, usage, GitHub Actions, operations. Replace `YOUR_ORG/secagents` in badge URLs and in `pyproject.toml` `[project.urls]` after you create the repository.
+### Autonomous AI Red-Team Agent Framework
 
-**Pipeline (default):** **Parallel specialists** (Code analyst + OSINT; with `--parallel-specialists 3+`, **Infra/Config** joins the same parallel wave) → **Recon** → **Exploit/PoC** → **Validator** → **Remediator**. Outputs merge into a **knowledge graph** (`knowledge_graph.json`, Mermaid in `report.md`) for shared attack documentation.
+*Deploy a full squad of AI security specialists against your codebase — in seconds.*
+
+[![CI](https://github.com/gl1tch0x1/SecAgents/actions/workflows/ci.yml/badge.svg)](https://github.com/gl1tch0x1/SecAgents/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Docker](https://img.shields.io/badge/Sandbox-Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![LLM](https://img.shields.io/badge/LLM-OpenAI%20%7C%20Anthropic%20%7C%20Ollama-7c3aed?logo=openai&logoColor=white)]()
+[![Platform](https://img.shields.io/badge/Bug%20Bounty-HackerOne%20%7C%20Bugcrowd-f59e0b?logo=hackerone&logoColor=white)]()
+
+---
+
+> 🔐 **SecAgents** is a Python CLI that deploys an **autonomous multi-agent red team** against your code — complete with parallel specialists, a Docker sandbox, PoC validation, auto-fix patches, and platform-ready reports for **HackerOne** and **Bugcrowd**.
+
+</div>
+
+---
+
+## 🧠 What Makes SecAgents Different
+
+| Feature | Details |
+|---|---|
+| 🤖 **8 AI Specialists** | Code Analyst, OSINT, Infra/Config, Intel, IDOR, OAuth, Race Condition, LLM Feature — all run in parallel |
+| 🐳 **Isolated Docker Sandbox** | Every exploit attempt runs in a locked-down container with `curl`, `nmap`, `mitmproxy`, headless Chrome |
+| 💥 **PoC-Backed Findings** | Agents must demonstrate impact — `validated=false` findings are clearly separated from confirmed bugs |
+| 📦 **30,000+ Payloads** | XSS, SQLi, LFI, SSRF, XXE, SSTI, IDOR, JWT, Open Redirect, Prompt Injection — sourced from PayloadsAllTheThings |
+| 📊 **Platform Reports** | Auto-generates HackerOne and Bugcrowd VRT-mapped markdown reports |
+| 🔧 **Auto-Fix Patches** | Remediator agent generates copy-paste-ready unified diffs for every confirmed finding |
+| 🔗 **CI/CD Ready** | Native `secagents ci` command with exit-code gate for GitHub Actions |
+| 🔑 **LLM-Agnostic** | Run with OpenAI, Anthropic Claude, or local Ollama — same interface |
+
+---
+
+**Pipeline:**
+
+```
+⚙️ Config + 📦 Payloads
+       ↓
+⚡ Parallel Specialists  ──  [Code Analyst] [OSINT] [Infra] [IDOR] [OAuth] [Race] [Intel] [LLM]
+       ↓
+🗺️  Recon  →  💥 Exploit/PoC  →  ✅ Validator  →  🩹 Remediator
+       ↓
+📊 Outputs: report.md · report.json · autofix.md · knowledge_graph.json
+```
+
 
 ### Architectural Workflow
 
@@ -66,187 +109,143 @@ flowchart TB
     RM --> FX
 ```
 
-- **Agentic toolkit (sandbox image):** **HTTP proxy** (mitmproxy when install succeeds + `/opt/secagents/bin/mitm_sniff.sh`), **headless Chromium** (`secagents-chrome` per URL / “tab”), **batch shells**, **Python + bandit**, `rg`/`find`/`nmap`/`curl`/`openssl`/`nc`/`socat`, plus JRE/Node/Ruby/Go. Read-only `/workspace`; **no network** by default (enable for URL targets). **Rebuild** the image after upgrades: `docker rmi secagents-sandbox:latest` then run a scan.
-- **PoC validation:** Findings separate into **validated** (command/output evidence) vs **needs triage** to reduce false positives.
-- **Targets:** local folder, Git URL, or live `https://` URL (probe + optional network-backed checks).
-- **LLMs:** OpenAI, Anthropic, or **Ollama**. Tune `--temperature`, `--top-p`, `--max-tokens`, `--max-turns`, `--recon-turns`, `--validation-turns`.
-- **CLI:** `--team` / `--no-team`, `--parallel-specialists` (`1` off, `2` code+OSINT, **`3+` adds Infra/Config** in parallel), `--sandbox-timeout`, `--sandbox-shm`, `--remediation` / `--no-remediation`, CI via `secagents ci` + `.github/workflows/secagents.yml`.
-- **Coverage:** Access control, injection, server-side (SSRF/XXE/deserialization), client-side (XSS/prototype pollution/DOM), business logic, auth/session, infrastructure misconfig (see prompts / model behavior).
-
-> ⚠️ **Safety Notice:** SecAgents runs attacker-style automation against your targets. Only use it on code, systems, or URLs you own or are **explicitly authorized** to test. Always review sandbox commands in generated transcripts.
-
----
-
-## Table of Contents
-
-1. [Prerequisites](#1-prerequisites)
-2. [Installation](#2-installation)
-3. [Health Check](#3-health-check)
-4. [Choose Your LLM Provider](#4-choose-your-llm-provider)
-5. [Running Your First Scan](#5-running-your-first-scan)
-6. [CLI Reference](#6-cli-reference)
-7. [Configuration Reference](#7-configuration-reference)
-8. [Understanding the Output](#8-understanding-the-output)
-9. [Bug Bounty Mode](#9-bug-bounty-mode)
-10. [GitHub Actions / CI Integration](#10-github-actions--ci-integration)
-11. [Updating SecAgents](#11-updating-secagents)
-12. [Refreshing the Payload Library](#12-refreshing-the-payload-library)
-13. [Limitations](#13-limitations)
-14. [License](#14-license)
+### 🛠️ Agentic Toolkit (Sandbox Image)
+> 🧪 **Isolated Environment**: Every scan runs inside a fortified Docker sandbox, pre-loaded with:
+> - **Proxies**: `mitmproxy` + custom sniffing scripts
+> - **Browsers**: Headless Chromium (`secagents-chrome`)
+> - **Tools**: `nmap`, `curl`, `openssl`, `nc`, `socat`, `rg`, `bandit`
+> - **Runtimes**: JRE, Node, Ruby, Go, Python
+> - **FileSystem**: Read-only `/workspace` access
 
 ---
 
-## 1. Prerequisites
+## 🎖️ The Security Specialist Squad
 
-Before installing SecAgents, make sure you have the following installed on your machine:
+SecAgents deploys a parallel wave of dedicated AI experts, each with a specific focus area:
 
-| Requirement | Version | Notes |
-|-------------|---------|-------|
-| **Python** | 3.11 or newer | `python --version` to verify |
-| **Docker** | Latest stable | Desktop or Engine; daemon must be running |
-| **Git** | Any | To clone this repository |
-
-- **Windows:** Install [Python from python.org](https://www.python.org/downloads/) and [Docker Desktop](https://www.docker.com/products/docker-desktop/).
-- **macOS:** `brew install python docker` (or install Docker Desktop).
-- **Linux:** `sudo apt install python3 python3-pip` + install Docker Engine.
+| Specialist | Icon | Focus Area |
+| :--- | :---: | :--- |
+| **Code Analyst** | 🔍 | Deep static analysis, logic flaws, and sensitive data leakage. |
+| **OSINT Surface** | 🌐 | Public surface area mapping and metadata leakage. |
+| **Infra / Config** | 🏗️ | Dockerfile, K8s, and Cloud configuration misalignments. |
+| **Intel Agent** | 🛡️ | Real-time CVE mapping via NVD and GitHub Advisories. |
+| **IDOR Hunter** | 🔑 | Indirect Object Reference and authorization bypasses. |
+| **OAuth Specialist** | 🎟️ | PKCE, Redirect URI, and State token validation flaws. |
+| **Race Navigator** | 🏎️ | TOCTOU and concurrent execution state vulnerabilities. |
+| **LLM Guard** | 🤖 | Prompt injection and AI-specific feature exploitation. |
 
 ---
 
-## 2. Installation
+> [!WARNING]
+> **Safety First**: SecAgents is a powerful offensive security tool. Only run it against targets you are authorized to test. Review all sandbox logs before acting on findings.
 
-### Step 1 — Clone the repository
+---
 
+## 🚀 Quick Start
+
+### 1️⃣ Prerequisites
+- **Python**: 3.11+
+- **Docker**: Desktop or Engine (running)
+- **Git**: For cloning the core repo
+
+### 2️⃣ Installation
 ```bash
+# Clone the nexus
 git clone https://github.com/gl1tch0x1/SecAgents.git
 cd SecAgents
-```
 
-### Step 2 — Install in editable mode (recommended)
-
-```bash
-# Creates a local editable install so `secagents` is available system-wide
+# Deploy locally
 pip install -e .
 ```
 
-> **Tip:** Use a virtual environment to keep your system Python clean:
-> ```bash
-> python -m venv .venv
-> # Windows:
-> .venv\Scripts\activate
-> # macOS / Linux:
-> source .venv/bin/activate
->
-> pip install -e .
-> ```
-
-### Step 3 — Verify the install
-
-```bash
-secagents version
-# Expected: SecAgents x.y.z
-```
-
-If `secagents` isn't found, try:
-
-```bash
-python -m secagents version
-```
-
-Or add Python's `Scripts/` directory to your PATH (Windows users often need this).
-
----
-
-## 3. Health Check
-
-Run the built-in doctor command to verify Docker is reachable and everything is configured:
-
+### 3️⃣ Health Check
 ```bash
 secagents doctor
 ```
 
-Expected output:
-```
-✅ Docker daemon reachable
-✅ Python 3.12.x
-✅ SecAgents v0.1.1
-```
-
-If Docker shows an error, make sure the Docker daemon is running:
-- **Windows/macOS:** Open Docker Desktop.
-- **Linux:** `sudo systemctl start docker`
-
 ---
 
-## 4. Choose Your LLM Provider
+## ⚡ Multi-Provider Deployment
 
-SecAgents supports three LLM backends. Pick one:
+Choose your intelligence engine based on your environment:
 
-### Option A — Ollama (local, free, no API key)
-
-Best for privacy-conscious users and offline environments.
-
+#### 🟢 Option A: Ollama (Local & Private)
 ```bash
-# Pull and start Ollama with a model (one-time setup)
 secagents setup-ollama --model llama3.2
-
-# Run a scan using Ollama
-secagents scan ./my-project --provider ollama --model llama3.2
+secagents scan ./target --provider ollama --model llama3.2
 ```
 
-> Requires Docker. The command pulls the Ollama image and model automatically.
-
-### Option B — OpenAI
-
+#### 🟡 Option B: OpenAI (Global Scale)
 ```bash
-# Set your API key (or add to .env file)
-export OPENAI_API_KEY=sk-...          # macOS / Linux
-$env:OPENAI_API_KEY="sk-..."          # Windows PowerShell
-
-secagents scan ./my-project --provider openai --model gpt-4o-mini
+export OPENAI_API_KEY=sk-...
+secagents scan ./target --provider openai --model gpt-4o-mini
 ```
 
-### Option C — Anthropic (Claude)
-
+#### 🟠 Option C: Anthropic (Deep Reasoning)
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...   # macOS / Linux
-$env:ANTHROPIC_API_KEY="sk-ant-..."   # Windows PowerShell
-
-secagents scan ./my-project --provider anthropic --model claude-3-5-haiku-20241022
-```
-
-### Using a `.env` file (recommended)
-
-Create a `.env` file in the project root so you don't have to set env vars every session:
-
-```ini
-# .env — never commit this file
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-SECAGENTS_PROVIDER=openai
-SECAGENTS_MODEL=gpt-4o-mini
+export ANTHROPIC_API_KEY=sk-ant-...
+secagents scan ./target --provider anthropic --model claude-3-5-sonnet-latest
 ```
 
 ---
 
-## 5. Running Your First Scan
+## 📊 Mission Intelligence & Output
 
-### Scan a local project folder
+Once the squad completes its mission, it generates a comprehensive intelligence package in your `--out-dir`:
 
+- **`report.md`**: Mission debrief with Mermaid attack flows and VRT mappings.
+- **`report.json`**: Structured data for CI/CD ingestion.
+- **`autofix.md`**: Battle-tested unified diff patches to neutralize findings.
+- **`knowledge_graph.json`**: Full relational map of discovered assets and vulnerabilities.
+
+### 🎯 Bug Bounty Ready
+Generate submission-ready reports for major platforms:
 ```bash
-secagents scan ./my-project
+secagents scan ./project --platform h1        # HackerOne Optimization
+secagents scan ./project --platform bugcrowd  # Bugcrowd VRT Alignment
 ```
 
-### Scan a GitHub repository (clones automatically)
+---
+
+## 🛠️ CLI Operations
+
+| Command | Action |
+| :--- | :--- |
+| `secagents doctor` | Diagnostic run for Docker and environment health. |
+| `secagents scan <target>` | Initialize a full multi-agent red-team operation. |
+| `secagents ci <path>` | Execute a gatekeeper scan for CI/CD pipelines. |
+| `secagents setup-ollama` | Provisions a local Ollama instance for private AI. |
+
+---
+
+## 📦 Payload Inventory
+SecAgents mounts a massive, structured library at `/opt/secagents/payloads/`:
+- **Expansion**: Run `python build_payloads.py` to sync 30k+ fresh payloads from *PayloadsAllTheThings*.
+- **Categories**: `xss`, `sqli`, `lfi`, `ssrf`, `xxe`, `idor`, `jwt`, `open_redirect`, `ssti`, `prompt_injection`.
+
+---
+
+## ⛓️ CI/CD Integration
+
+Integrate SecAgents into your development lifecycle:
+
+- **`.github/workflows/ci.yml`**: High-speed linting and unit testing.
+- **`.github/workflows/secagents.yml`**: Autonomous security gate for every Pull Request.
 
 ```bash
-secagents scan https://github.com/org/repo --kind repo --branch main
+# Fail the pipeline on High severity findings
+secagents ci ./src --provider openai --model gpt-4o-mini --fail-on high
 ```
 
-### Scan a live web URL
+---
 
-```bash
-secagents scan https://example.com --kind url --allow-network
-```
+## 📜 Metadata & Legal
 
+- **License**: [MIT](LICENSE)
+- **Security**: [SECURITY.md](SECURITY.md)
+- **Contribution**: [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
 
-MIT — see [LICENSE](LICENSE). Security disclosures: [SECURITY.md](SECURITY.md). Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). Changelog: [CHANGELOG.md](CHANGELOG.md).
+<div align="center">
+  <sub>Built by security researchers, for the next generation of offensive AI.</sub>
+</div>
