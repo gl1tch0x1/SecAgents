@@ -1,76 +1,78 @@
-# 🔗 GitHub Automation Protocol
+<div align="center">
 
-Deploy and orchestrate SecAgents within your CI/CD lifecycle. This guide covers **workflow deployment**, **secret management**, and **automated security gates**.
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Link.png" alt="Automation" width="100"/>
+
+# 🔗 AUTOMATION PROTOCOLS
+
+**GitHub Integration & CI/CD Fortification.**
+
+*Orchestrate your squad within the development lifecycle.*
+
+</div>
 
 ---
 
-## 🏗️ Phase 1: Workflow Deployment
+## 🏗️ PHASE 1: WORKFLOW PROVISIONING
 
-Provision your repository with the following automation blocks. Copy these from the core repo:
+Deploy these automation blocks to your repository's `.github/workflows/` directory:
 
-| Lifecycle Block | Security Role | Trigger |
+| BLOCK | SECURITY ROLE | TRIGGER |
 | :--- | :--- | :--- |
-| **`.github/workflows/ci.yml`** | **Lint & Unit Tests** | Every Push / PR |
-| **`.github/workflows/secagents.yml`** | **Autonomous Security Scan** | PR / Manual |
-| **`.github/dependabot.yml`** | **Dependency Hardening** | Weekly |
+| **`ci.yml`** | **Lint & Unit Testing** | Every Push / PR |
+| **`secagents.yml`** | **Autonomous Security Gate** | PR / Manual / Scheduled |
+| **`dependabot.yml`** | **Dependency Hardening** | Weekly Cycle |
 
 > [!IMPORTANT]
-> Ensure all workflow files are committed to your default branch (usually `main`) to activate the automated security pipeline.
+> **DEFAULT BRANCH**: Ensure all workflow manifests are committed to your protected branch (usually `main`) to activate the automated security pipeline.
 
 ---
 
-## 🛡️ Phase 2: Security & Intelligence
+## 🛡️ PHASE 2: SECRET & INTEL CONFIGURATION
 
-Choose your intelligence tier for the automated scanner:
+Provision your repository with the necessary intelligence keys:
 
-### 🔑 Secret Management
-Configure these in **Settings → Secrets and variables → Actions**:
+### 🔑 SECRET MANAGEMENT
+(Settings → Secrets and variables → Actions)
 
-| Interface | Purpose | Strategy |
-| :--- | :--- | :--- |
-| `OPENAI_API_KEY` | **Cloud Intelligence** | Bypasses local Ollama pull for high-speed scanning. |
-| `ANTHROPIC_API_KEY` | **Deep Reasoning** | Bypasses local Ollama pull for complex scenarios. |
+| INTERFACE | MISSION ROLE |
+| :--- | :--- |
+| **`OPENAI_API_KEY`** | Connects to the Global Intelligence Cloud for high-speed scanning. |
+| **`ANTHROPIC_API_KEY`** | Enables Deep Reasoning for complex vulnerability state analysis. |
 
-- If **no keys** are detected, the pipeline automatically spins up a local **Ollama** instance inside the runner.
-
-### ⚙️ Operational Variables (Optional)
-Configure these in **Settings → Secrets and variables → Actions → Variables**:
-
-| Variable | Intelligence Control | Default |
+### ⚙️ OPERATIONAL VARIABLES (OPTIONAL)
+| VARIABLE | PURPOSE | DEFAULT |
 | :--- | :--- | :--- |
 | `SECAGENTS_OLLAMA_MODEL` | Local model tag for `ollama pull`. | `llama3.2` |
-| `SECAGENTS_PARALLEL_SPECIALISTS` | Concurrent specialist count (`3+` for Infra). | `2` |
+| `SECAGENTS_PARALLEL` | Concurrent specialist count. | `2` |
 
 ---
 
-## ⚡ Phase 3: Gatekeeper Configuration
+## ⚡ PHASE 3: GATEKEEPER STRATEGY
 
-Enforce a "Secure by Default" merge strategy:
+Enforce a **"Secure by Default"** merge policy:
 
 1.  Navigate to **Settings → Branches → Branch protection**.
-2.  Target your protected branch (e.g., `main`).
-3.  Enable **"Require status checks to pass before merging"**.
-4.  Mandate these checks:
-    - `CI / lint-test`: Ensures codebase integrity.
-    - `SecAgents Scan / scan`: Blocks PRs with unresolved high-severity findings.
+2.  Enable **"Require status checks to pass before merging"**.
+3.  Mandate the following high-fidelity checks:
+    - `CI / lint-test`: Codebase structural integrity.
+    - `SecAgents Scan / scan`: Autonomous security regression blocking.
 
 ---
 
-## 📦 Phase 4: Intelligence Artifacts
+## 📦 PHASE 4: ARTIFACT RETENTION
 
-Every mission generates a **`secagents-report`** package. Access it from the **Actions** execution page:
+Every mission execution produces a **`secagents-report`** package. Access it via the **Actions** tab:
 
-- **`report.md`**: Human-readable debrief for reviewers.
-- **`report.json`**: Machine-readable data for external aggregators.
-- **`autofix.md`**: Unified diffs for rapid remediation.
+- **`report.md`**: Mission debrief for security reviewers.
+- **`autofix.md`**: Immediate remediation diffs for developers.
 
 ---
 
-## 🏁 Next Protocol
+## 🏁 NEXT COMMAND
 
-- **[Operations & Hardening](Operations.md)**: Advance your deployment.
-- **[Installation](Installation.md)**: Rebuild your environment.
+- Master the CLI in **[Usage Protocols](Usage.md)**.
+- Review the **[Operations & Hardening](Operations.md)** manual for infrastructure security.
 
 <div align="center">
-  <sub>SecAgents Automation Command</sub>
+  <sub>SECAGENTS AUTOMATION MANUAL</sub>
 </div>

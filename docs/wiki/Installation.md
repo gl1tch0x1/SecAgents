@@ -1,104 +1,87 @@
-# 🚀 Installation Operation
+<div align="center">
 
-Follow these protocols **in sequence** to deploy your SecAgents environment. SecAgents requires **Python 3.11+** and a high-performance **Docker** daemon.
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Rocket.png" alt="Installation" width="100"/>
 
----
+# 🚀 DEPLOYMENT PROTOCOLS
 
-## 🏗️ Phase 1: Core Dependencies
+**SecAgents Initialization & Setup.**
 
-### 🐳 Step 1: Docker Infrastructure
-SecAgents relies on Docker for its fortification (sandbox) and local intelligence (Ollama).
-1.  Install **[Docker Engine](https://docs.docker.com/engine/install/)** or **[Docker Desktop](https://docs.docker.com/desktop/)**.
-2.  Initialize the daemon and verify:
-    ```bash
-    docker version
-    ```
-3.  **Linux Users**: Ensure your user is in the `docker` group to avoid `sudo` conflicts.
+*Deploy the squad, fortify the sandbox, and prepare for multi-agent engagement.*
 
-### 🐍 Step 2: Python Environment
-1.  Install **Python 3.11 or newer** from **[python.org](https://www.python.org/downloads/)**.
-2.  Confirm deployment:
-    ```bash
-    python --version
-    ```
+</div>
 
 ---
 
-## ⚡ Phase 2: Deployment
+## 🏗️ PHASE 1: REQUISITE INFRASTRUCTURE
 
-### 📂 Step 3: Clone the Nexus
-Clone the repository to your local operations center:
+Execute these procedures to ensure the tactical environment is initialized.
+
+### 🐳 STEP 1: DOCKER VIRTUALIZATION
+SecAgents utilizes Docker for sandboxed execution and private AI instantiation.
+- **Protocol**: Install **[Docker Engine](https://docs.docker.com/engine/install/)** or **[Docker Desktop](https://docs.docker.com/desktop/)**.
+- **Verification**: `docker version` must return active system status.
+- **Permission**: Ensure the current user has `docker` group escalation (Linux).
+
+### 🐍 STEP 2: PYTHON COGNITIVE ENGINE
+- **Protocol**: Install **Python 3.11 or newer** from **[python.org](https://www.python.org/downloads/)**.
+- **Verification**: `python --version` must confirm v3.11+.
+
+---
+
+## ⚡ PHASE 2: SQUAD DEPLOYMENT
+
+### 📂 STEP 3: CLONING THE NEXUS
 ```bash
 git clone https://github.com/gl1tch0x1/SecAgents.git
 cd SecAgents
 ```
 
-### 🛡️ Step 4: Virtual Fortification
-We highly recommend using a virtual environment to isolate your security tools:
+### 🛡️ STEP 4: VIRTUAL ISOLATION
+We recommend a dedicated virtual environment for all security operations:
 ```bash
 python -m venv .venv
-
-# Activate (Linux / macOS)
-source .venv/bin/activate
-
-# Activate (Windows)
-.venv\Scripts\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 ```
 
-### ⚙️ Step 5: Install SecAgents
-Deploy the agentic framework in editable mode:
+### ⚙️ STEP 5: FRAMEWORK INITIALIZATION
 ```bash
+# Core Installation
 pip install -e .
 
-# Optional: Development Toolkit (Lint + Tests)
+# Optional: Advanced Development Hooks
 pip install -e ".[dev]"
 ```
 
 ---
 
-## 🩺 Phase 3: Systems Verification
+## 🩺 PHASE 3: SYSTEMS DIAGNOSTICS
 
-Validate your installation using the built-in diagnostic tools:
+Validate the integrity of your deployment:
 
 ```bash
 secagents version
 secagents doctor
 ```
 
-- **`version`**: Confirms the package build.
-- **`doctor`**: High-level diagnostic for Docker connectivity and environment health.
+> [!IMPORTANT]
+> **DOCTOR REPORT**: If `secagents doctor` fails to reach the Docker daemon, all scan operations will be locked. Resolve Docker connectivity before proceeding.
 
 ---
 
-## 🏗️ Phase 4: Sandbox Initialization
+## 🟢 OPTIONAL: PRIVATE AI COMAHND (OLLAMA)
 
-The first operation will automatically **build** the `secagents-sandbox:latest` image. This is a one-time intensive process.
+For full data sovereignty, deploy a local LLM instance:
 
-> [!TIP]
-> **Rebuild Protocol**: If you update the core codebase or payload library, force a sandbox refresh:
-> ```bash
-> docker rmi secagents-sandbox:latest
-> ```
+1.  **Initialize**: `secagents setup-ollama --model llama3.2`
+2.  **Logic**: This provisions a local container, pulls model weights, and exposes the intelligence API to the framework.
 
 ---
 
-## 🟢 Optional: Local Private AI (Ollama)
+## 🏁 NEXT MISSION PROTOCOL
 
-For air-gapped or private missions, deploy a local LLM:
-1.  Ensure Docker is active.
-2.  Provision the instance:
-    ```bash
-    secagents setup-ollama --model llama3.2
-    ```
-3.  This command handles image pulling, container lifecycle, and model weight ingestion.
-
----
-
-## 🏁 Next Mission
-
-- Learn to execute scans in **[Usage Guide](Usage.md)**.
-- Automate your security and CI/CD in **[GitHub Integration](GitHub-Integration.md)**.
+- Learn to command the squad in **[Usage Protocols](Usage.md)**.
+- Scale your operations in **[GitHub Automation](GitHub-Integration.md)**.
 
 <div align="center">
-  <sub>SecAgents Deployment Manual</sub>
+  <sub>SECAGENTS DEPLOYMENT MANUAL</sub>
 </div>
