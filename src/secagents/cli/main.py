@@ -161,10 +161,22 @@ def scan(
         int,
         typer.Option(
             min=1,
-            max=8,
-            help="Parallel opening tracks: 1=off, 2=code+OSINT, 3+=add Infra/Config (three-way; 4–8 same trio).",
+            max=10,
+            help="Parallel tracks: 1=off, 2=code+OSINT, 3=+Intel, 4=+IDOR/OAuth, 5=+Race, 6=+LLM.",
         ),
     ] = 2,
+    platform: Annotated[
+        str,
+        typer.Option(help="Report format platform: generic, h1, bugcrowd"),
+    ] = "generic",
+    skip_intel: Annotated[
+        bool,
+        typer.Option(help="Skip the IntelAgent (e.g. for offline/air-gapped networks)"),
+    ] = False,
+    force_llm_agent: Annotated[
+        bool,
+        typer.Option(help="Force run the LLMFeatureAgent even if no AI endpoints detected"),
+    ] = False,
     sandbox_timeout: Annotated[
         int,
         typer.Option(min=30, max=3600, help="Docker sandbox per-command timeout (seconds)."),
@@ -222,6 +234,8 @@ def scan(
                 "parallel_specialists": parallel_specialists,
                 "sandbox_command_timeout_sec": sandbox_timeout,
                 "sandbox_shm_size": sandbox_shm,
+                "skip_intel": skip_intel,
+                "force_llm_agent": force_llm_agent,
             }
         )
         if ollama_url:
@@ -259,7 +273,7 @@ def scan(
         if ofmt in ("markdown", "both"):
             console.print(
                 render_markdown_report(
-                    acq.label, result, provider=provider.value, model=cfg.model
+                    acq.label, result, provider=provider.value, model=cfg.model, platform=platform
                 )
             )
         if ofmt in ("json", "both"):
@@ -267,7 +281,7 @@ def scan(
 
         if out_dir:
             md_p, js_p = write_reports(
-                out_dir, acq.label, result, provider=provider.value, model=cfg.model
+                out_dir, acq.label, result, provider=provider.value, model=cfg.model, platform=platform
             )
             console.print(f"[green]Wrote[/green] {md_p} and {js_p}")
             af = out_dir / "autofix.md"
@@ -307,7 +321,10 @@ def ci(
     recon_turns: Annotated[int, typer.Option(min=0, max=80)] = 2,
     validation_turns: Annotated[int, typer.Option(min=0, max=80)] = 3,
     remediation: Annotated[bool, typer.Option("--remediation/--no-remediation")] = True,
-    parallel_specialists: Annotated[int, typer.Option(min=1, max=8)] = 2,
+    parallel_specialists: Annotated[int, typer.Option(min=1, max=10)] = 2,
+    platform: Annotated[str, typer.Option()] = "generic",
+    skip_intel: Annotated[bool, typer.Option()] = False,
+    force_llm_agent: Annotated[bool, typer.Option()] = False,
     sandbox_timeout: Annotated[int, typer.Option(min=30, max=3600)] = 300,
     sandbox_shm: Annotated[str, typer.Option()] = "1g",
 ) -> None:
@@ -334,6 +351,8 @@ def ci(
             "parallel_specialists": parallel_specialists,
             "sandbox_command_timeout_sec": sandbox_timeout,
             "sandbox_shm_size": sandbox_shm,
+            "skip_intel": skip_intel,
+            "force_llm_agent": force_llm_agent,
         }
     )
     if provider == LLMProvider.ollama and setup_local_ai:
@@ -348,7 +367,7 @@ def ci(
 
     acq = acquire_local(path)
     result = run_red_team_scan(acq.root, cfg, allow_network=False, use_agent_team=team)
-    write_reports(out_dir, acq.label, result, provider=provider.value, model=cfg.model)
+    write_reports(out_dir, acq.label, result, provider=provider.value, model=cfg.model, platform=platform)
 
     if ci_should_fail(result, threshold):
         console.print(

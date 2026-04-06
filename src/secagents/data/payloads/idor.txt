@@ -1,0 +1,35 @@
+# Integer IDs
+0
+1
+2
+3
+-1
+999999999
+00001
+2147483647
+-2147483648
+0x1
+# UUID / GUID variants
+00000000-0000-0000-0000-000000000000
+ffffffff-ffff-ffff-ffff-ffffffffffff
+12345678-1234-1234-1234-123456789012
+# Common hashes (md5 of 1, 2)
+c4ca4238a0b923820dcc509a6f75849b
+c81e728d9d4c2f636f067f89cc14862c
+eccbc87e4b5ce2fe28308fd9f2a7baf3
+# Parameter Pollution
+id=1&id=2
+id[]=1&id[]=2
+{"id":1, "id":2}
+# Field substitution
+user_id=1
+admin_id=1
+account_id=1
+profile_id=1
+tenant_id=1
+organization_id=1
+team_id=1
+# Extension truncation
+1.json
+1.xml
+1.html

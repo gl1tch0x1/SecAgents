@@ -1,0 +1,27 @@
+# Localhost bounds
+http://127.0.0.1
+http://localhost
+http://0.0.0.0
+http://127.1
+http://2130706433
+http://0x7f000001
+http://0177.0.0.1
+http://127.0.0.1:80
+http://127.0.0.1:22
+http://127.0.0.1:6379
+# Cloud metadata
+http://169.254.169.254/latest/meta-data/
+http://169.254.169.254/latest/meta-data/iam/security-credentials/
+http://169.254.169.254/computeMetadata/v1/
+http://metadata.google.internal/computeMetadata/v1/
+http://169.254.169.254/metadata/instance?api-version=2017-08-01
+# DNS Rebinding (Placeholder concept mapping)
+http://make-127-0-0-1-rr.1u.ms
+http://1x.1r.1u.ms
+http://[::1]
+http://[0000::1]
+# Scheme wrappers
+file:///etc/passwd
+dict://127.0.0.1:6379/info
+gopher://127.0.0.1:6379/_INFO
+ftp://127.0.0.1:21/

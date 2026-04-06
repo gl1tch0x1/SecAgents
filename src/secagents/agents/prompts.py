@@ -50,6 +50,8 @@ EXPLOITER_SYSTEM = f"""You are the **Exploit / PoC** specialist. You behave like
 minimal reproducers, and capture stdout/stderr as proof. You hate false positives—if you cannot
 demonstrate impact, keep validated=false and explain what is missing.
 
+IMPORTANT PAYLOAD RULE: All fuzzing or payload testing MUST load payloads from /opt/secagents/payloads/<category>.txt. Do NOT hardcode payloads inline in your scripts or curl commands. Use bash tools or Python to read and iterate over these payloads.
+
 {_SANDBOX_RULES}
 
 Collaborate with prior Recon: prioritize priority_paths and recon_summary. Accumulate findings with
@@ -106,6 +108,44 @@ analysis. Propose concrete **hardening_checks** for Recon/Exploit to validate in
 {_SANDBOX_RULES}
 
 Mark validated=false unless the config text alone proves the issue (e.g., DEBUG=True in production settings).
+"""
+
+IDOR_SYSTEM = f"""You are the **IDOR Specialist** agent. Your goal is to detect Insecure Direct Object Reference vulnerabilities.
+You perform exact path manipulation by swapping user IDs, UUIDs, or integers in endpoints and detecting when cross-user data is returned.
+You utilize payloads from /opt/secagents/payloads/idor.txt to fuzz IDs.
+Produce HIGH confidence findings if response body diff clearly shows specific user data fields.
+Produce MEDIUM confidence if status code differs, and LOW if only response size differs.
+
+{_SANDBOX_RULES}
+"""
+
+OAUTH_SYSTEM = f"""You are the **OAuth Specialist** agent. You detect OAuth 2.0 flow vulnerabilities.
+Test PKCE enforcement, state parameter bypass, redirect_uri abuse via /opt/secagents/payloads/open_redirect.txt, and implicit flow downgrades.
+Use curl tooling to script OAuth tests. Note expected vs actual behavior.
+
+{_SANDBOX_RULES}
+"""
+
+RACE_SYSTEM = f"""You are the **Race Condition Specialist** agent. You detect race conditions and TOCTOU bugs.
+Use Python asyncio + httpx to send identical parallel requests targeting single-use constraints or counters.
+Configure concurrency using the provided context variables. Record timing analysis (min/max/stddev).
+
+{_SANDBOX_RULES}
+"""
+
+INTEL_SYSTEM = f"""You are the **Intel Agent** (parallel track). Your goal is to gather threat intelligence via NVD API and GitHub Advisories.
+Fingerprint tech stacks, language, CMS, frameworks, and versions using curl/HTTP headers. You DO NOT use an API key. 
+Handle rate limits with exponential backoff via shell scripts (python httpx/requests snippet). Generate a structured 'intel.md' report outlining CVEs (last 2 years, CVSS >= 7.0) and techniques.
+
+{_SANDBOX_RULES}
+"""
+
+LLM_FEATURE_SYSTEM = f"""You are the **LLM Feature Specialist** agent. You test AI/LLM-powered features.
+You scan HTML/JS for 'chat', 'assistant', 'ai', 'copilot' etc to uncover endpoints.
+Test direct/indirect prompt injections, chatbot IDOR, system prompt leaks, and LLM RCE.
+Load payloads from /opt/secagents/payloads/prompt_injection.txt.
+
+{_SANDBOX_RULES}
 """
 
 
@@ -177,6 +217,159 @@ def infra_config_user_message(*, workspace_summary: str) -> str:
 """
     return f"""[Phase=INFRA_CONFIG — no shell]
 
+{workspace_summary[:95000]}
+
+JSON schema:
+{schema}
+"""
+
+def idor_user_message(*, workspace_summary: str) -> str:
+    schema = """
+{
+  "reasoning": "string",
+  "shell_command": "string or empty",
+  "network_required": boolean,
+  "findings": [
+    {
+      "title": "string",
+      "severity": "critical|high|medium|low|info",
+      "category": "string",
+      "confidence": "HIGH|MEDIUM|LOW",
+      "cvss_score": "number — CVSS 3.1 base score estimate",
+      "evidence": "string — original vs tampered request, diff of responses",
+      "validated": boolean,
+      "poc_command": "string",
+      "poc_output_excerpt": "string",
+      "remediation_steps": ["string"],
+      "suggested_patch": "string"
+    }
+  ],
+  "done": boolean
+}
+"""
+    return f"""[Phase=IDOR_SPECIALIST] Use shell_command to execute Curl / Python scripts. Payloads: /opt/secagents/payloads/idor.txt.
+Workspace:
+{workspace_summary[:95000]}
+
+JSON schema:
+{schema}
+"""
+
+def oauth_user_message(*, workspace_summary: str) -> str:
+    schema = """
+{
+  "reasoning": "string",
+  "shell_command": "string or empty",
+  "network_required": boolean,
+  "findings": [
+    {
+      "title": "string",
+      "severity": "critical|high|medium|low|info",
+      "category": "string",
+      "evidence": "string — test name, expected vs actual behavior",
+      "validated": boolean,
+      "poc_command": "string",
+      "poc_output_excerpt": "string",
+      "remediation_steps": ["string"],
+      "suggested_patch": "string"
+    }
+  ],
+  "done": boolean
+}
+"""
+    return f"""[Phase=OAUTH_SPECIALIST] Locate /oauth, /auth endpoints and run tests.
+Workspace:
+{workspace_summary[:95000]}
+
+JSON schema:
+{schema}
+"""
+
+def race_user_message(*, workspace_summary: str, concurrency: int) -> str:
+    schema = """
+{
+  "reasoning": "string",
+  "shell_command": "string or empty",
+  "network_required": boolean,
+  "findings": [
+    {
+      "title": "string",
+      "severity": "critical|high|medium|low|info",
+      "category": "string",
+      "evidence": "string — endpoints tested, concurrency level, timing analysis (min/max/stddev)",
+      "validated": boolean,
+      "poc_command": "string",
+      "poc_output_excerpt": "string",
+      "remediation_steps": ["string"],
+      "suggested_patch": "string"
+    }
+  ],
+  "done": boolean
+}
+"""
+    return f"""[Phase=RACE_CONDITION] Send identical requests in parallel targeting single-use constraints. Concurrency limit: {concurrency}.
+Workspace:
+{workspace_summary[:95000]}
+
+JSON schema:
+{schema}
+"""
+
+def intel_user_message(*, workspace_summary: str) -> str:
+    schema = """
+{
+  "reasoning": "string",
+  "shell_command": "string or empty",
+  "network_required": boolean,
+  "intel_markdown": "string — detailed report with ## Detected Stack, ## CVEs (last 2 years, CVSS >= 7.0), and ## Recently Disclosed Techniques.",
+  "findings": [
+    {
+      "title": "string",
+      "severity": "critical|high|medium|low|info",
+      "category": "string",
+      "evidence": "string — CVE IDs and tech stacks detected",
+      "validated": boolean,
+      "poc_command": "string",
+      "poc_output_excerpt": "string",
+      "remediation_steps": ["string"],
+      "suggested_patch": "string"
+    }
+  ],
+  "done": boolean
+}
+"""
+    return f"""[Phase=INTEL_AGENT] Map tech stack using HTTP headers / scripts. Query NVD API/GitHub Advisories. Write the results into an intel_markdown structure in your response.
+Workspace:
+{workspace_summary[:95000]}
+
+JSON schema:
+{schema}
+"""
+
+def llm_message(*, workspace_summary: str) -> str:
+    schema = """
+{
+  "reasoning": "string",
+  "shell_command": "string or empty",
+  "network_required": boolean,
+  "findings": [
+    {
+      "title": "string",
+      "severity": "critical|high|medium|low|info",
+      "category": "string",
+      "evidence": "string — endpoint, payload used, detection heuristic triggered",
+      "validated": boolean,
+      "poc_command": "string",
+      "poc_output_excerpt": "string",
+      "remediation_steps": ["string"],
+      "suggested_patch": "string"
+    }
+  ],
+  "done": boolean
+}
+"""
+    return f"""[Phase=LLM_FEATURE] Use /opt/secagents/payloads/prompt_injection.txt parameters against chat/ai endpoints.
+Workspace:
 {workspace_summary[:95000]}
 
 JSON schema:
@@ -365,6 +558,8 @@ Produce minimal, correct patches. If unsure, leave patch empty and explain in re
 ORCHESTRATOR_SYSTEM = f"""You are the lead operator coordinating autonomous security testers.
 You behave like an expert offensive security researcher: skeptical, evidence-driven, and precise.
 You find real vulnerabilities—not hypothetical fluff—and validate with PoCs where possible.
+
+IMPORTANT PAYLOAD RULE: All fuzzing or payload testing MUST load payloads from /opt/secagents/payloads/<category>.txt. Do NOT hardcode payloads inline in your scripts or curl commands.
 
 {_SANDBOX_RULES}
 

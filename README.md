@@ -8,6 +8,39 @@ Python CLI that runs **autonomous multi-agent red teams** against your code—bu
 
 **Pipeline (default):** **Parallel specialists** (Code analyst + OSINT; with `--parallel-specialists 3+`, **Infra/Config** joins the same parallel wave) → **Recon** → **Exploit/PoC** → **Validator** → **Remediator**. Outputs merge into a **knowledge graph** (`knowledge_graph.json`, Mermaid in `report.md`) for shared attack documentation.
 
+### Architectural Workflow
+
+```mermaid
+flowchart TD
+    subgraph Config
+        AppConfig[Config & CLI Arguments]
+        Payloads[Sandbox Payloads / XSS, SQLi, etc.]
+    end
+
+    subgraph Agents["Parallel Specialists"]
+        CA[Code Analyst]
+        OS[OSINT Surface]
+        IC[Infra/Config]
+        IA[Intel Agent]
+        IDOR[IDOR Agent]
+        OA[OAuth Agent]
+        RC[Race Cond Agent]
+        LLM[LLM Feature Agent]
+    end
+
+    AppConfig --> Agents
+    AppConfig --> Payloads
+    Payloads -.-> Agents
+
+    Agents --> Recon[Recon Agent]
+    Recon --> Exploit[Exploit / PoC]
+    Exploit --> Validator[Validator]
+    Validator --> Remediator[Remediator]
+    
+    Exploit --> KB[(Knowledge Graph)]
+    Validator --> KB
+```
+
 - **Agentic toolkit (sandbox image):** **HTTP proxy** (mitmproxy when install succeeds + `/opt/secagents/bin/mitm_sniff.sh`), **headless Chromium** (`secagents-chrome` per URL / “tab”), **batch shells**, **Python + bandit**, `rg`/`find`/`nmap`/`curl`/`openssl`/`nc`/`socat`, plus JRE/Node/Ruby/Go. Read-only `/workspace`; **no network** by default (enable for URL targets). **Rebuild** the image after upgrades: `docker rmi secagents-sandbox:latest` then run a scan.
 - **PoC validation:** Findings separate into **validated** (command/output evidence) vs **needs triage** to reduce false positives.
 - **Targets:** local folder, Git URL, or live `https://` URL (probe + optional network-backed checks).

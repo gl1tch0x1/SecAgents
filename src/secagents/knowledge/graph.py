@@ -25,14 +25,16 @@ class KnowledgeGraph:
 
     nodes: list[GraphNode] = field(default_factory=list)
     edges: list[GraphEdge] = field(default_factory=list)
-    parallel_infra: bool = False
+    ran_specialists: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         d = {
             "nodes": [asdict(n) for n in self.nodes],
             "edges": [asdict(e) for e in self.edges],
         }
-        d["parallel_infra_specialist"] = self.parallel_infra
+        d["ran_specialists"] = self.ran_specialists
+        # backwards-compat key expected by older tests
+        d["parallel_infra_specialist"] = "infra_config" in self.ran_specialists
         return d
 
     def mermaid_flowchart(self) -> str:
@@ -44,8 +46,20 @@ class KnowledgeGraph:
             "    CA[Code Analyst]",
             "    OS[OSINT Surface]",
         ]
-        if self.parallel_infra:
-            lines.append("    IF[Infra / Config]")
+        
+        name_map = {
+            "infra_config": "Infra / Config",
+            "intel": "Intel Agent",
+            "idor": "IDOR Agent",
+            "oauth": "OAuth Agent",
+            "race": "Race Cond Agent",
+            "llm_feature": "LLM Feature Agent"
+        }
+        
+        for sp in self.ran_specialists:
+            if sp in name_map:
+                lines.append(f"    {sp.upper()}[{name_map[sp]}]")
+
         lines.extend(
             [
                 "  end",
@@ -65,12 +79,21 @@ def build_knowledge_graph(
     *,
     finding_titles: list[str],
     priority_targets: list[str],
-    infra_specialist_ran: bool = False,
+    ran_specialists: list[str] | None = None,
+    # legacy kwarg — kept for backwards compatibility with existing tests
+    infra_specialist_ran: bool | None = None,
 ) -> KnowledgeGraph:
-    g = KnowledgeGraph(parallel_infra=infra_specialist_ran)
+    ran_specialists = list(ran_specialists or [])
+    # honour the legacy flag: inject infra_config if not already present
+    if infra_specialist_ran and "infra_config" not in ran_specialists:
+        ran_specialists.insert(0, "infra_config")
+    elif infra_specialist_ran is False and "infra_config" in ran_specialists:
+        ran_specialists = [s for s in ran_specialists if s != "infra_config"]
+    g = KnowledgeGraph(ran_specialists=ran_specialists)
     agent_names = ["code_analyst", "osint_surface"]
-    if infra_specialist_ran:
-        agent_names.append("infra_config")
+    
+    agent_names.extend(ran_specialists)
+    
     agent_names.extend(["recon", "exploit", "validator", "remediator"])
     for name in agent_names:
         g.nodes.append(GraphNode(id=name, kind="agent", label=name, meta={}))
@@ -94,6 +117,8 @@ def build_knowledge_graph(
     g.edges.append(GraphEdge(source="exploit", target="knowledge_base", relation="documents"))
     g.edges.append(GraphEdge(source="code_analyst", target="knowledge_base", relation="feeds"))
     g.edges.append(GraphEdge(source="osint_surface", target="knowledge_base", relation="feeds"))
-    if infra_specialist_ran:
-        g.edges.append(GraphEdge(source="infra_config", target="knowledge_base", relation="feeds"))
+    
+    for sp in ran_specialists:
+        g.edges.append(GraphEdge(source=sp, target="knowledge_base", relation="feeds"))
+        
     return g

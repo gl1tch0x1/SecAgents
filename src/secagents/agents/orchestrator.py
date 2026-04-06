@@ -10,17 +10,27 @@ from pathlib import Path
 from secagents.agents.prompts import (
     CODE_ANALYST_SYSTEM,
     EXPLOITER_SYSTEM,
+    IDOR_SYSTEM,
     INFRA_CONFIG_SYSTEM,
+    INTEL_SYSTEM,
+    LLM_FEATURE_SYSTEM,
+    OAUTH_SYSTEM,
     ORCHESTRATOR_SYSTEM,
     OSINT_SURFACE_SYSTEM,
+    RACE_SYSTEM,
     RECON_SYSTEM,
     REMEDIATOR_SYSTEM,
     VALIDATOR_SYSTEM,
     code_analyst_user_message,
     exploiter_user_message,
+    idor_user_message,
     infra_config_user_message,
+    intel_user_message,
+    llm_message,
+    oauth_user_message,
     orchestrator_user_message,
     osint_surface_user_message,
+    race_user_message,
     recon_user_message,
     remediator_user_message,
     validator_user_message,
@@ -67,9 +77,10 @@ class ScanResult:
     infra_config_brief: str | None = None
     infra_config_risks: list[str] = field(default_factory=list)
     infra_hardening_hints: list[str] = field(default_factory=list)
-    infra_specialist_ran: bool = False
+    ran_specialists: list[str] = field(default_factory=list)
     knowledge_graph: dict = field(default_factory=dict)
     orchestration_mermaid: str | None = None
+    intel_markdown: str | None = None
 
 
 def _is_safeish_command(cmd: str) -> bool:
@@ -346,7 +357,7 @@ def run_single_agent_scan(
     kg = build_knowledge_graph(
         finding_titles=[f.title for f in result.findings],
         priority_targets=result.priority_targets,
-        infra_specialist_ran=result.infra_specialist_ran,
+        ran_specialists=result.ran_specialists,
     )
     result.knowledge_graph = kg.to_dict()
     result.orchestration_mermaid = kg.mermaid_flowchart()
@@ -548,8 +559,10 @@ def _parallel_opening_specialists(
     """Run parallel opening specialists; return (prior_context, summary_for_recon).
 
     - ``parallel_specialists >= 2``: Code analyst + OSINT surface.
-    - ``parallel_specialists >= 3``: also Infra / Config (three-way parallel).
-    Values above 3 use the same three tracks for the opening phase.
+    - ``parallel_specialists >= 3``: + Intel Agent
+    - ``parallel_specialists >= 4``: + IDOR & OAuth Specialits
+    - ``parallel_specialists >= 5``: + Race Condition Specialist
+    - ``parallel_specialists >= 6``: + LLM Feature Specialist
     """
     if cfg.parallel_specialists < 2:
         return "", summary
@@ -589,36 +602,96 @@ def _parallel_opening_specialists(
             )
             return extract_json_object(raw)
         except Exception as e:
-            return {
-                "parse_error": str(e),
-                "findings": [],
-                "infra_brief": "",
-                "config_risks": [],
-                "hardening_checks": [],
-            }
+            return {"parse_error": str(e), "findings": [], "infra_brief": "", "config_risks": [], "hardening_checks": []}
+
+    def _intel_payload() -> dict:
+        try:
+            raw = chat_completion(
+                cfg, system=INTEL_SYSTEM, user=intel_user_message(workspace_summary=summary)
+            )
+            return extract_json_object(raw)
+        except Exception as e:
+            return {"parse_error": str(e), "findings": [], "intel_markdown": ""}
+
+    def _idor_payload() -> dict:
+        try:
+            raw = chat_completion(
+                cfg, system=IDOR_SYSTEM, user=idor_user_message(workspace_summary=summary)
+            )
+            return extract_json_object(raw)
+        except Exception as e:
+            return {"parse_error": str(e), "findings": []}
+
+    def _oauth_payload() -> dict:
+        try:
+            raw = chat_completion(
+                cfg, system=OAUTH_SYSTEM, user=oauth_user_message(workspace_summary=summary)
+            )
+            return extract_json_object(raw)
+        except Exception as e:
+            return {"parse_error": str(e), "findings": []}
+
+    def _race_payload() -> dict:
+        try:
+            raw = chat_completion(
+                cfg, system=RACE_SYSTEM, user=race_user_message(workspace_summary=summary, concurrency=cfg.race_concurrency)
+            )
+            return extract_json_object(raw)
+        except Exception as e:
+            return {"parse_error": str(e), "findings": []}
+
+    def _llm_payload() -> dict:
+        try:
+            raw = chat_completion(
+                cfg, system=LLM_FEATURE_SYSTEM, user=llm_message(workspace_summary=summary)
+            )
+            return extract_json_object(raw)
+        except Exception as e:
+            return {"parse_error": str(e), "findings": []}
 
     run_infra = cfg.parallel_specialists >= 3
-    workers = 3 if run_infra else 2
-    result.infra_specialist_ran = run_infra
+    run_intel = cfg.parallel_specialists >= 3 and not cfg.disable_intel and not cfg.skip_intel
+    run_idor = cfg.parallel_specialists >= 4 and not cfg.disable_idor
+    run_oauth = cfg.parallel_specialists >= 4 and not cfg.disable_oauth
+    run_race = cfg.parallel_specialists >= 5 and not cfg.disable_race
+    
+    # Check if we should activate LLM agent natively based on content heuristics
+    run_llm = False
+    if cfg.parallel_specialists >= 6 and not cfg.disable_llm_agent:
+        content_lower = summary.lower()
+        if cfg.force_llm_agent or any(w in content_lower for w in ("chat", "assistant", "ai", "copilot", "llm", "gpt", "claude", "completions")):
+            run_llm = True
 
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        fut_c = pool.submit(_code_payload)
-        fut_o = pool.submit(_osint_payload)
-        fut_i = pool.submit(_infra_payload) if run_infra else None
-        d_code = fut_c.result()
-        d_osint = fut_o.result()
-        d_infra = fut_i.result() if fut_i is not None else None
+    tasks = [("code_analyst", _code_payload), ("osint_surface", _osint_payload)]
+    if run_infra:
+        tasks.append(("infra_config", _infra_payload))
+    if run_intel:
+        tasks.append(("intel", _intel_payload))
+    if run_idor:
+        tasks.append(("idor", _idor_payload))
+    if run_oauth:
+        tasks.append(("oauth", _oauth_payload))
+    if run_race:
+        tasks.append(("race", _race_payload))
+    if run_llm:
+        tasks.append(("llm_feature", _llm_payload))
 
-    result.transcript.append(
-        {"phase": "parallel_open", "agent": "code_analyst", "data": d_code}
-    )
-    result.transcript.append(
-        {"phase": "parallel_open", "agent": "osint_surface", "data": d_osint}
-    )
-    if d_infra is not None:
-        result.transcript.append(
-            {"phase": "parallel_open", "agent": "infra_config", "data": d_infra}
-        )
+    result.ran_specialists = [name for name, _ in tasks if name not in ("code_analyst", "osint_surface")]
+
+    futures = {}
+    with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+        for name, fn in tasks:
+            futures[name] = pool.submit(fn)
+
+    results = {}
+    for name, fut in futures.items():
+        data = fut.result()
+        results[name] = data
+        result.transcript.append({"phase": "parallel_open", "agent": name, "data": data})
+
+    d_code = results.get("code_analyst", {})
+    d_osint = results.get("osint_surface", {})
+    d_infra = results.get("infra_config")
 
     result.static_analysis_brief = str(d_code.get("analysis_brief") or "")
     _merge_findings(result.findings, list(d_code.get("findings") or []))
@@ -636,6 +709,18 @@ def _parallel_opening_specialists(
         if isinstance(hc, list):
             result.infra_hardening_hints = [str(x) for x in hc if x][:50]
         _merge_findings(result.findings, list(d_infra.get("findings") or []))
+
+    # Merge Intel findings and Markdown
+    d_intel = results.get("intel")
+    if d_intel is not None:
+        result.intel_markdown = str(d_intel.get("intel_markdown") or "")
+        _merge_findings(result.findings, list(d_intel.get("findings") or []))
+
+    # Merge remaining findings
+    for ext in ("idor", "oauth", "race", "llm_feature"):
+        d_ext = results.get(ext)
+        if d_ext is not None:
+            _merge_findings(result.findings, list(d_ext.get("findings") or []))
 
     parts: list[str] = []
     if result.static_analysis_brief:
@@ -660,6 +745,9 @@ def _parallel_opening_specialists(
                 "**Hardening checks (for Exploit/Recon):**\n"
                 + "\n".join(f"- {x}" for x in result.infra_hardening_hints[:40])
             )
+    
+    if result.intel_markdown:
+        parts.append("### Threat Intel Agent (parallel)\n" + result.intel_markdown.strip())
     prior = "\n\n".join(p for p in parts if p.strip())
     summary_recon = summary + (
         "\n\n## Parallel specialist output (already completed)\n" + prior if prior else ""
@@ -709,7 +797,7 @@ def run_team_scan(
     kg = build_knowledge_graph(
         finding_titles=[f.title for f in result.findings],
         priority_targets=result.priority_targets,
-        infra_specialist_ran=result.infra_specialist_ran,
+        ran_specialists=result.ran_specialists,
     )
     result.knowledge_graph = kg.to_dict()
     result.orchestration_mermaid = kg.mermaid_flowchart()

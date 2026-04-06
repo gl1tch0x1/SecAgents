@@ -53,8 +53,19 @@ class AppConfig(BaseSettings):
     validation_turns: int = Field(default=5, ge=0, le=80)
     run_remediation_pass: bool = Field(default=True)
 
-    # Parallel LLM specialists at scan open: 2 = code + OSINT; 3+ adds Infra/Config (same three for 3–8)
-    parallel_specialists: int = Field(default=2, ge=1, le=8)
+    # Parallel LLM specialists at scan open: 2 = code + OSINT; 3 = +Intel; 4 = +IDOR/OAuth; 5 = +Race; 6 = +LLM
+    parallel_specialists: int = Field(default=2, ge=1, le=10)
+    
+    # New specialist flags
+    disable_idor: bool = Field(default=False)
+    disable_oauth: bool = Field(default=False)
+    disable_race: bool = Field(default=False)
+    disable_intel: bool = Field(default=False)
+    disable_llm_agent: bool = Field(default=False)
+    force_llm_agent: bool = Field(default=False)
+    skip_intel: bool = Field(default=False)
+    race_concurrency: int = Field(default=10, ge=1, le=100)
+
     sandbox_shm_size: str = Field(default="1g")
     sandbox_command_timeout_sec: int = Field(default=300, ge=30, le=3600)
 

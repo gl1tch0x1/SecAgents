@@ -24,13 +24,116 @@ def _render_autofix_section(auto_fixes: list[AutoFixItem]) -> str:
     return "\n".join(lines)
 
 
+def _render_h1_report(target_label: str, result: ScanResult, provider: str, model: str) -> str:
+    lines = ["# Security Scan Overview (HackerOne run)", "", f"**Target:** {target_label}", ""]
+    
+    cvss_map = {
+        "critical": "critical",
+        "high": "high",
+        "medium": "medium",
+        "low": "low",
+        "info": "none"
+    }
+
+    for f in result.findings:
+        sev = cvss_map.get(f.severity.lower(), "none")
+        lines.extend([
+            "## Vulnerability Report",
+            "",
+            f"**Title:** {f.title[:100]}",
+            f"**Severity:** {sev}",
+            f"**Asset:** {target_label}",
+            "",
+            "### Summary",
+            f"The scanner identified a potential {f.category} vulnerability. {f.evidence}",
+            "",
+            "### Steps to Reproduce",
+            f"1. Attempt the following payload/command: `{f.poc_command or 'N/A'}`",
+            "",
+            "### Impact",
+            f"An attacker may exploit this {f.category} issue. {f.poc_output_excerpt}",
+            "",
+            "### Supporting Material",
+            "See the automated scan transcript for full steps.",
+            "",
+            "### Suggested Fix",
+            f"{(f.suggested_patch or 'Review and patch the endpoint.')}",
+            ""
+        ])
+    return "\n".join(lines)
+
+
+def _bugcrowd_vrt_map(category: str) -> str:
+    cat = category.lower()
+    if 'xss' in cat or 'cross-site' in cat:
+        return "Cross-Site Scripting (XSS)"
+    if 'sqli' in cat or 'sql' in cat:
+        return "SQL Injection"
+    if 'ssrf' in cat:
+        return "Server-Side Request Forgery (SSRF)"
+    if 'idor' in cat:
+        return "Insecure Direct Object Reference (IDOR)"
+    if 'oauth' in cat:
+        return "OAuth / OpenID Related Issues"
+    if 'race' in cat or 'toctou' in cat:
+        return "Race Condition"
+    if 'inject' in cat:
+        return "Injection"
+    if 'sensitive' in cat or 'data' in cat:
+        return "Sensitive Data Exposure"
+    if 'auth' in cat:
+        return "Broken Authentication"
+    return "Uncategorized"
+
+def _render_bugcrowd_report(target_label: str, result: ScanResult, provider: str, model: str) -> str:
+    lines = ["# External Scan Document (Bugcrowd run)", "", f"**Target:** {target_label}", ""]
+    
+    cvss_score_map = {
+        "critical": "9.0",
+        "high": "7.5",
+        "medium": "5.0",
+        "low": "3.0",
+        "info": "0.0"
+    }
+
+    for f in result.findings:
+        vrt = _bugcrowd_vrt_map(f.category)
+        score = cvss_score_map.get(f.severity.lower(), "0.0")
+        lines.extend([
+            "## Bug Report",
+            "",
+            f"**Title:** {f.title}",
+            f"**VRT Category:** {vrt}",
+            f"**Target:** {target_label}",
+            f"**CVSS Score:** {score} (Network/Adjacent)",
+            "",
+            "### Description",
+            f"{f.evidence}",
+            "",
+            "### Reproduction Steps",
+            f"`{f.poc_command or 'N/A'}`",
+            "",
+            "### Impact Assessment",
+            f"Exploiting this allows access mapping to {score} severity.",
+            "",
+            "### Remediation",
+            f"{(f.suggested_patch or 'Follow best security practices.')}",
+            ""
+        ])
+    return "\n".join(lines)
+
 def render_markdown_report(
     target_label: str,
     result: ScanResult,
     *,
     provider: str,
     model: str,
+    platform: str = "generic",
 ) -> str:
+    if platform == "h1":
+        return _render_h1_report(target_label, result, provider, model)
+    if platform == "bugcrowd":
+        return _render_bugcrowd_report(target_label, result, provider, model)
     lines: list[str] = [
         "# SecAgents security report",
         "",
@@ -218,7 +321,7 @@ def findings_to_json(target_label: str, result: ScanResult, *, provider: str, mo
         "infra_config_brief": result.infra_config_brief,
         "infra_config_risks": result.infra_config_risks,
         "infra_hardening_hints": result.infra_hardening_hints,
-        "infra_specialist_ran": result.infra_specialist_ran,
+        "ran_specialists": result.ran_specialists,
         "knowledge_graph": result.knowledge_graph,
         "orchestration_mermaid": result.orchestration_mermaid,
     }
@@ -241,12 +344,13 @@ def write_reports(
     *,
     provider: str,
     model: str,
+    platform: str = "generic",
 ) -> tuple[Path, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     md_path = out_dir / "report.md"
     json_path = out_dir / "report.json"
     md_path.write_text(
-        render_markdown_report(target_label, result, provider=provider, model=model),
+        render_markdown_report(target_label, result, provider=provider, model=model, platform=platform),
         encoding="utf-8",
     )
     json_path.write_text(

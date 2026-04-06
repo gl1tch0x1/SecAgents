@@ -36,6 +36,7 @@ RUN pip3 install --no-cache-dir --break-system-packages bandit \
     && (pip3 install --no-cache-dir --break-system-packages 'mitmproxy>=10,<11' || true)
 
 COPY sandbox_helpers /opt/secagents/
+COPY payloads /opt/secagents/payloads/
 RUN chmod +x /opt/secagents/bin/* 2>/dev/null || true \
     && ln -sf /opt/secagents/TOOLKIT.md /opt/secagents/README_TOOLKIT.txt
 
