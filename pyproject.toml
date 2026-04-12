@@ -34,7 +34,7 @@ dependencies = [
 
 [project.optional-dependencies]
 docker = ["docker>=7.1.0"]
-dev = ["ruff>=0.6.0", "pytest>=8.0.0"]
+dev = ["ruff>=0.15.10", "pytest>=8.0.0"]
 
 [project.urls]
 Homepage = "https://github.com/YOUR_ORG/secagents"
