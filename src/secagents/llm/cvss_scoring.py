@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any
 
 
 class AttackVector(StrEnum):
@@ -88,7 +87,6 @@ class CVSSv31Scorer:
         """Calculate the base CVSS v3.1 score (0.0-10.0)."""
         
         # Calculate impact score
-        scope_coeff = 7.52 if metrics.scope == "U" else 9.6
         c_score = CVSSv31Scorer.IMPACT_SCORES[metrics.confidentiality]
         i_score = CVSSv31Scorer.IMPACT_SCORES[metrics.integrity]
         a_score = CVSSv31Scorer.IMPACT_SCORES[metrics.availability]

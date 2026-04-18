@@ -14,8 +14,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from secagents.cli.ui import ui
-
 
 class LogLevel(StrEnum):
     """Standard log levels with additional security levels."""

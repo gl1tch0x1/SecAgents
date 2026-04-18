@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from secagents.agents.prompts import (
     CODE_ANALYST_SYSTEM,
@@ -127,15 +129,14 @@ def dedupe_findings(findings: list[ScanFinding]) -> list[ScanFinding]:
     return list(by_key.values())
 
 
-from typing import Callable, Any
-
 # Optional callback for UI updates
 StatusCallback = Callable[[str], Any]
 
 def _collect_workspace_summary(root: Path, cfg: AppConfig, status_cb: StatusCallback | None = None) -> str:
     """Optimized workspace summary collection with early termination and smaller defaults."""
     root = root.resolve()
-    if status_cb: status_cb("Gathering environmental data...")
+    if status_cb:
+        status_cb("Gathering environmental data...")
     
     lines: list[str] = []
     lines.append(f"ROOT: {root}")
@@ -192,13 +193,15 @@ def _collect_workspace_summary(root: Path, cfg: AppConfig, status_cb: StatusCall
     budget = cfg.max_file_bytes
     
     for rel in picked:
-        if budget <= 1000: break  # Early termination
+        if budget <= 1000:
+            break  # Early termination
         fp = root / rel
         try:
             # Quick check for binary with smaller sample
             with fp.open("rb") as f:
                 head = f.read(512)  # Reduced from 1024
-                if b"\x00" in head: continue
+                if b"\x00" in head:
+                    continue
             
             # Read with strict size limit
             with fp.open("r", encoding="utf-8", errors="replace") as f:
@@ -337,7 +340,8 @@ def run_single_agent_scan(
     last_code: int | None = None
 
     for turn in range(1, cfg.max_agent_turns + 1):
-        if status_cb: status_cb(f"Autonomous Orchestrator: Cycle [bold yellow]{turn}/{cfg.max_agent_turns}[/bold yellow]...")
+        if status_cb:
+            status_cb(f"Autonomous Orchestrator: Cycle [bold yellow]{turn}/{cfg.max_agent_turns}[/bold yellow]...")
         user = orchestrator_user_message(
             workspace_summary=summary,
             turn=turn,
@@ -366,7 +370,8 @@ def run_single_agent_scan(
 
     result.findings = dedupe_findings(result.findings)
     if cfg.run_remediation_pass and result.findings:
-        if status_cb: status_cb("Synthesizing final remediation patches...")
+        if status_cb:
+            status_cb("Synthesizing final remediation patches...")
         _run_remediation_phase(cfg, summary, result)
 
     kg = build_knowledge_graph(
@@ -798,19 +803,22 @@ def run_team_scan(
     summary = _collect_workspace_summary(workspace, cfg, status_cb=status_cb)
     result = ScanResult()
 
-    if status_cb: status_cb("Deploying [bold magenta]Parallel Specialists[/bold magenta] (Intel/OSINT/Vuln)...")
+    if status_cb:
+        status_cb("Deploying [bold magenta]Parallel Specialists[/bold magenta] (Intel/OSINT/Vuln)...")
     prior_parallel, summary_recon = _parallel_opening_specialists(cfg, summary, result)
 
     r_turns, e_turns, v_turns = _budget_turns(cfg)
-    
-    if status_cb: status_cb("Infiltrator [bold cyan]Recon[/bold cyan]: Scanning file systems and attack surface...")
+
+    if status_cb:
+        status_cb("Infiltrator [bold cyan]Recon[/bold cyan]: Scanning file systems and attack surface...")
     recon_summary, priority = _phase_recon(
         workspace, cfg, allow_network, summary_recon, result, r_turns
     )
     result.recon_brief = recon_summary
     result.priority_targets = priority
 
-    if status_cb: status_cb("Operative [bold red]Exploit[/bold red]: Generating PoCs and validating vulnerabilities...")
+    if status_cb:
+        status_cb("Operative [bold red]Exploit[/bold red]: Generating PoCs and validating vulnerabilities...")
     _phase_exploit(
         workspace,
         cfg,
@@ -830,10 +838,12 @@ def run_team_scan(
         result.findings = dedupe_findings(result.findings)
 
     if cfg.run_remediation_pass and result.findings:
-        if status_cb: status_cb("Agent [bold blue]Remediator[/bold blue]: Synthesizing patches and hardening logic...")
+        if status_cb:
+            status_cb("Agent [bold blue]Remediator[/bold blue]: Synthesizing patches and hardening logic...")
         _run_remediation_phase(cfg, summary, result)
 
-    if status_cb: status_cb("Mission Command: Finalizing intel reports and knowledge graph...")
+    if status_cb:
+        status_cb("Mission Command: Finalizing intel reports and knowledge graph...")
     kg = build_knowledge_graph(
         finding_titles=[f.title for f in result.findings],
         priority_targets=result.priority_targets,

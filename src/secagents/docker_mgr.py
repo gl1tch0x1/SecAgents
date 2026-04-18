@@ -230,7 +230,7 @@ def docker_compose_down(
     if remove_volumes:
         args.append("-v")
     
-    out.print(f"[bold cyan]Stopping[/bold cyan] services …")
+    out.print("[bold cyan]Stopping[/bold cyan] services …")
     cp = subprocess.run(args, cwd=project_dir, check=False)
     if cp.returncode != 0:
         out.print("[yellow]⚠ docker-compose down had issues[/yellow]")
@@ -246,6 +246,7 @@ def wait_for_ollama(
 ) -> bool:
     """Wait for Ollama to be ready via health check (optimized)."""
     import time
+
     import httpx
     
     out = console_out or ui.console
@@ -325,19 +326,19 @@ def interactive_env_setup(
                 config["SECAGENTS_DEEPSEEK_API_KEY"] = api_key
             elif provider == "qwen":
                 config["SECAGENTS_QWEN_API_KEY"] = api_key
-            out.print(f"[green]✓ API key set[/green]\n")
+            out.print("[green]✓ API key set[/green]\n")
         else:
             out.print("[yellow]⚠ Skipping API key[/yellow]\n")
     else:
         # Ollama-specific setup
         out.print("[bold]2. Ollama Configuration:[/bold]")
-        out.print(f"  Default Ollama URL: http://127.0.0.1:11434")
+        out.print("  Default Ollama URL: http://127.0.0.1:11434")
         custom_url = input("  Enter custom URL (or press Enter to use default): ").strip()
         if custom_url:
             config["SECAGENTS_OLLAMA_BASE_URL"] = custom_url
         
         # Default model
-        out.print(f"\n  Available models: llama3.2, mistral, neural-chat, etc.")
+        out.print("\n  Available models: llama3.2, mistral, neural-chat, etc.")
         model = input("  Model to pull (default: llama3.2): ").strip() or "llama3.2"
         config["SECAGENTS_MODEL"] = model
         out.print()

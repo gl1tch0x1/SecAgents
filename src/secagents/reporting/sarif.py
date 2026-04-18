@@ -165,7 +165,3 @@ class SARIFExporter:
             json.dump(sarif_data, f, indent=2)
         
         return str(path)
-
-
-# Import dataclass here to avoid circular imports
-from dataclasses import dataclass

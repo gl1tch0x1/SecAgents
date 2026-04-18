@@ -10,7 +10,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Generic, TypeVar, overload
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 

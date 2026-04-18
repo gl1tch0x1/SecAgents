@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from rich.console import Console, Group
+from rich.console import Console
 from rich.panel import Panel
 from rich.progress import (
     BarColumn,
@@ -11,12 +11,9 @@ from rich.progress import (
     SpinnerColumn,
     TextColumn,
     TimeElapsedColumn,
-    DownloadColumn,
-    TransferSpeedColumn,
 )
 from rich.status import Status
 from rich.table import Table
-from rich.text import Text
 from rich.theme import Theme
 
 # Tactical Hacker Theme

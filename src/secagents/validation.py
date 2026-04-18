@@ -78,7 +78,7 @@ class InputValidator:
         # Check against allowed patterns if provided
         if allowed_patterns:
             if not any(re.match(pattern, command) for pattern in allowed_patterns):
-                raise ValueError(f"Command does not match allowed patterns")
+                raise ValueError("Command does not match allowed patterns")
         
         return command.strip()
     
@@ -186,7 +186,8 @@ class OutputSanitizer:
             return f"'{text}'"
         
         # Otherwise use double quotes with escaping
-        return f'"{text.replace('"', '\\"')}"'
+        escaped = text.replace('"', '\\"')
+        return f'"{escaped}"'
     
     @staticmethod
     def sanitize_report_text(text: str) -> str:

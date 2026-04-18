@@ -69,8 +69,8 @@ def setup_ollama(
 ) -> None:
     """Deploy Ollama core and synchronize models."""
     from secagents.cli.ui import ui
-    from secagents.docker_mgr import detect_docker, start_ollama_container, ollama_pull_model, try_install_docker_hint
     from secagents.config import AppConfig
+    from secagents.docker_mgr import detect_docker, ollama_pull_model, start_ollama_container, try_install_docker_hint
 
     ui.banner()
     info = detect_docker()
@@ -105,13 +105,13 @@ def install(
     """Execute SecAgents deployment sequence."""
     from secagents.cli.ui import ui
     from secagents.docker_mgr import (
-        detect_docker,
-        interactive_env_setup,
         build_secagents_image,
+        detect_docker,
         docker_compose_up,
-        wait_for_ollama,
+        interactive_env_setup,
         ollama_pull_model,
         try_install_docker_hint,
+        wait_for_ollama,
     )
     
     if docker_install or setup_ollama_cmd:
@@ -157,8 +157,8 @@ def install(
     
     elif setup_ollama_cmd:
         ui.h2("Ollama Node Initialization")
-        from secagents.docker_mgr import start_ollama_container
         from secagents.config import AppConfig
+        from secagents.docker_mgr import start_ollama_container
         cfg = AppConfig()
         try:
             base = start_ollama_container(name=cfg.ollama_container_name, image=cfg.ollama_docker_image, host_port=cfg.ollama_host_port)
@@ -201,8 +201,8 @@ def scan(
 ) -> None:
     """Execute autonomous red-team strike against target perimeter."""
     from secagents.cli.ui import ui
-    from secagents.docker_mgr import detect_docker, try_install_docker_hint
     from secagents.config import AppConfig, LLMProvider
+    from secagents.docker_mgr import detect_docker, try_install_docker_hint
 
     ui.banner()
     info = detect_docker()
@@ -219,17 +219,22 @@ def scan(
         else:
             resolved_kind = "local"
 
-    from secagents.targets.acquire import acquire_local, acquire_github_repo, acquire_url_target
-    from secagents.agents.orchestrator import run_red_team_scan
     import shutil
+
+    from secagents.agents.orchestrator import run_red_team_scan
+    from secagents.targets.acquire import acquire_github_repo, acquire_local, acquire_url_target
 
     cleanup: Path | None = None
     try:
         with ui.status(f"Acquiring target perimeter: [bold yellow]{target}[/bold yellow]...", spinner="earth"):
-            if resolved_kind == "local": acq = acquire_local(target)
-            elif resolved_kind == "repo": acq = acquire_github_repo(target, branch=branch)
-            elif resolved_kind == "url": acq = acquire_url_target(target)
-            else: raise typer.BadParameter(f"Unsupported kind: {resolved_kind}")
+            if resolved_kind == "local":
+                acq = acquire_local(target)
+            elif resolved_kind == "repo":
+                acq = acquire_github_repo(target, branch=branch)
+            elif resolved_kind == "url":
+                acq = acquire_url_target(target)
+            else:
+                raise typer.BadParameter(f"Unsupported kind: {resolved_kind}")
         
         cleanup = acq.cleanup
         base_cfg = AppConfig()
@@ -263,10 +268,11 @@ def scan(
             "sandbox_command_timeout_sec": sandbox_timeout,
         })
         
-        if ollama_url: cfg = cfg.model_copy(update={"ollama_base_url": ollama_url})
+        if ollama_url:
+            cfg = cfg.model_copy(update={"ollama_base_url": ollama_url})
 
         if prov_enum == LLMProvider.ollama and setup_local_ai:
-            from secagents.docker_mgr import start_ollama_container, ollama_pull_model
+            from secagents.docker_mgr import ollama_pull_model, start_ollama_container
             base = start_ollama_container(name=cfg.ollama_container_name, image=cfg.ollama_docker_image, host_port=cfg.ollama_host_port)
             cfg = cfg.model_copy(update={"ollama_base_url": base})
             ollama_pull_model(base, cfg.model)
@@ -300,7 +306,7 @@ def scan(
         for finding in result.findings:
             logger.log_vulnerability_detected(finding.title, finding.severity, finding.category)
 
-        from secagents.reporting.report import findings_to_json, render_markdown_report, max_severity
+        from secagents.reporting.report import max_severity, render_markdown_report
 
         ui.h2("Strike Analysis Complete")
         
@@ -342,10 +348,10 @@ def ci(
     model: Annotated[str | None, typer.Option()] = None,
 ) -> None:
     """CI Operation: Automated perimeter check with exit code failure on vulnerability match."""
-    from secagents.cli.ui import ui
-    from secagents.docker_mgr import detect_docker
-    from secagents.config import AppConfig, LLMProvider
     from secagents.agents.orchestrator import run_red_team_scan
+    from secagents.cli.ui import ui
+    from secagents.config import AppConfig, LLMProvider
+    from secagents.docker_mgr import detect_docker
     from secagents.reporting.report import ci_should_fail
     from secagents.targets.acquire import acquire_local
 

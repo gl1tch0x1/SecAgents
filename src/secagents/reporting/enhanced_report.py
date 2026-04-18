@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, asdict
-from pathlib import Path
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from secagents.agents.orchestrator import ScanFinding, ScanResult
@@ -370,7 +369,7 @@ def render_cvss_dashboard(result: ScanResult) -> str:
     if cvss_scores:
         avg_cvss = sum(cvss_scores) / len(cvss_scores)
     
-    lines.append(f"## Risk Metrics")
+    lines.append("## Risk Metrics")
     lines.append(f"- **Average CVSS Score**: {avg_cvss:.2f}")
     lines.append(f"- **Highest Risk**: {max(cvss_scores):.1f}")
     lines.append(f"- **Lowest Risk**: {min(cvss_scores):.1f}")

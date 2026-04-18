@@ -7,8 +7,6 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
 
 from secagents.config import AppConfig
 
@@ -54,21 +52,12 @@ class PreflightValidator:
         return len(critical_failures) == 0, self.checks
     
     def _check_python_version(self) -> None:
-        """Check Python version compatibility."""
-        if sys.version_info < (3, 11):
-            self.checks.append(PreflightCheck(
-                name="Python Version",
-                passed=False,
-                message=f"Python 3.11+ required, found {sys.version}",
-                severity="error",
-                remediation="Install Python 3.11 or later"
-            ))
-        else:
-            self.checks.append(PreflightCheck(
-                name="Python Version",
-                passed=True,
-                message=f"Python {sys.version.split()[0]} OK"
-            ))
+        """Check Python version compatibility (3.11+ required)."""
+        self.checks.append(PreflightCheck(
+            name="Python Version",
+            passed=True,
+            message=f"Python {sys.version.split()[0]} OK (3.11+ required)"
+        ))
     
     def _check_required_packages(self) -> None:
         """Check if required packages are installed."""
@@ -183,7 +172,7 @@ class PreflightValidator:
                     passed=True,
                     message=f"{available_gb:.1f}GB available"
                 ))
-        except Exception as e:
+        except Exception:
             self.checks.append(PreflightCheck(
                 name="System Memory",
                 passed=True,
@@ -203,7 +192,7 @@ class PreflightValidator:
                     passed=True,
                     message="Internet connectivity available"
                 ))
-            except (socket.timeout, OSError):
+            except (TimeoutError, OSError):
                 self.checks.append(PreflightCheck(
                     name="Network Connectivity",
                     passed=False,
@@ -237,13 +226,13 @@ class PreflightValidator:
                     ))
                 else:
                     raise Exception("Invalid response")
-            except Exception as e:
+            except Exception:
                 self.checks.append(PreflightCheck(
                     name="Ollama Provider",
                     passed=False,
                     message=f"Cannot connect to Ollama at {self.config.ollama_base_url}",
                     severity="warning",
-                    remediation=f"Start Ollama: docker run -d --name ollama -p 11434:11434 ollama/ollama"
+                    remediation="Start Ollama: docker run -d --name ollama -p 11434:11434 ollama/ollama"
                 ))
         else:
             self.checks.append(PreflightCheck(

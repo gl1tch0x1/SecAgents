@@ -6,7 +6,6 @@ Implements token bucket algorithm for rate limiting and prevents resource exhaus
 from __future__ import annotations
 
 import time
-from collections import defaultdict
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import Any
