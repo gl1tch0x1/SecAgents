@@ -3,6 +3,16 @@
   "pythonVersion": "3.13",
   "pythonPlatform": "All",
   "include": ["src"],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "**/*.egg-info",
+    "**/venv",
+    "**/.venv",
+    "**/build",
+    "**/dist"
+  ],
   "reportMissingImports": true,
   "reportMissingTypeStubs": false,
   "reportPrivateUsage": false,
