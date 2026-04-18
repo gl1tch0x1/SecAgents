@@ -28,7 +28,7 @@ class KnowledgeGraph:
     ran_specialists: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        d = {
+        d: dict[str, Any] = {
             "nodes": [asdict(n) for n in self.nodes],
             "edges": [asdict(e) for e in self.edges],
         }

@@ -127,79 +127,91 @@ def dedupe_findings(findings: list[ScanFinding]) -> list[ScanFinding]:
     return list(by_key.values())
 
 
-def _collect_workspace_summary(root: Path, cfg: AppConfig) -> str:
+from typing import Callable, Any
+
+# Optional callback for UI updates
+StatusCallback = Callable[[str], Any]
+
+def _collect_workspace_summary(root: Path, cfg: AppConfig, status_cb: StatusCallback | None = None) -> str:
+    """Optimized workspace summary collection with early termination and smaller defaults."""
     root = root.resolve()
+    if status_cb: status_cb("Gathering environmental data...")
+    
     lines: list[str] = []
     lines.append(f"ROOT: {root}")
     ignore = {
-        ".git",
-        "__pycache__",
-        "node_modules",
-        ".venv",
-        "venv",
-        "dist",
-        "build",
-        ".mypy_cache",
+        ".git", "__pycache__", "node_modules", ".venv", "venv", "dist", "build",
+        ".mypy_cache", ".pytest_cache", ".DS_Store", "target", "out", ".egg-info",
+        "site-packages", ".tox", ".coverage", ".pytest_cache", "htmlcov"
     }
+    
     files: list[Path] = []
+    file_count = 0
+    max_walk = 500  # Limit directory traversal
+    
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in ignore]
+        # Prune ignored directories
+        dirnames[:] = [d for d in dirnames if d not in ignore and not d.startswith('.')]
+        
+        # Limit directory traversal
+        if file_count > max_walk:
+            dirnames.clear()
+            break
+        
         for fn in filenames:
+            if file_count > max_walk:
+                break
             p = Path(dirpath) / fn
             try:
                 rel = p.relative_to(root)
-            except ValueError:
+                files.append(rel)
+                file_count += 1
+            except (ValueError, OSError):
                 continue
-            files.append(rel)
+    
     files.sort(key=lambda x: str(x).lower())
     lines.append(f"FILE_COUNT: {len(files)}")
-    preview = files[: min(len(files), 400)]
+    
+    preview = files[: min(len(files), 300)]  # Reduced from 600
     lines.append("FILES:\n" + "\n".join(str(p).replace("\\", "/") for p in preview))
+    
     priority_suffixes = (
-        ".py",
-        ".js",
-        ".ts",
-        ".tsx",
-        ".jsx",
-        ".go",
-        ".java",
-        ".rb",
-        ".php",
-        ".yml",
-        ".yaml",
-        ".json",
-        ".toml",
-        ".env",
-        ".md",
-        "Dockerfile",
+        ".py", ".js", ".ts", ".tsx", ".jsx", ".go", ".java", ".rb", ".php",
+        ".yml", ".yaml", ".json", ".toml", ".env", ".md", "Dockerfile", "Makefile"
     )
+    
     picked: list[Path] = []
     for rel in files:
         s = str(rel).lower()
-        if any(s.endswith(sfx) for sfx in priority_suffixes) or rel.name in (
-            "Dockerfile",
-            "Makefile",
-        ):
+        if any(s.endswith(sfx) for sfx in priority_suffixes) or rel.name in ("Dockerfile", "Makefile"):
             picked.append(rel)
         if len(picked) >= cfg.max_files_in_context:
             break
+            
     lines.append("\n--- EXCERPTS ---\n")
     budget = cfg.max_file_bytes
+    
     for rel in picked:
-        if budget <= 0:
-            break
+        if budget <= 1000: break  # Early termination
         fp = root / rel
         try:
-            data = fp.read_bytes()
-        except OSError:
+            # Quick check for binary with smaller sample
+            with fp.open("rb") as f:
+                head = f.read(512)  # Reduced from 1024
+                if b"\x00" in head: continue
+            
+            # Read with strict size limit
+            with fp.open("r", encoding="utf-8", errors="replace") as f:
+                data = f.read(4000)  # Reduced from 8000
+            
+            chunk_size = min(len(data), budget - 500)
+            chunk = data[:chunk_size]
+            budget -= len(chunk.encode("utf-8", errors="replace"))
+            loc = str(rel).replace("\\", "/")
+            lines.append(f"\n### {loc}\n```\n{chunk}\n```\n")
+        except Exception:
             continue
-        if b"\x00" in data[:1024]:
-            continue
-        text = data.decode("utf-8", errors="replace")
-        chunk = text[: min(len(text), budget, 4000)]
-        budget -= len(chunk.encode("utf-8", errors="replace"))
-        loc = str(rel).replace("\\", "/")
-        lines.append(f"\n### {loc}\n```\n{chunk}\n```\n")
+            
     return "\n".join(lines)
 
 
@@ -315,15 +327,17 @@ def run_single_agent_scan(
     cfg: AppConfig,
     *,
     allow_network: bool = False,
+    status_cb: StatusCallback | None = None,
 ) -> ScanResult:
-    """Legacy single-orchestrator loop (fast path)."""
+    """Legacy single-orchestrator loop with status feedback."""
     build_sandbox_image_if_needed(None, cfg.docker_image_sandbox)
-    summary = _collect_workspace_summary(workspace, cfg)
+    summary = _collect_workspace_summary(workspace, cfg, status_cb=status_cb)
     result = ScanResult()
     last_out, last_err = "", ""
     last_code: int | None = None
 
     for turn in range(1, cfg.max_agent_turns + 1):
+        if status_cb: status_cb(f"Autonomous Orchestrator: Cycle [bold yellow]{turn}/{cfg.max_agent_turns}[/bold yellow]...")
         user = orchestrator_user_message(
             workspace_summary=summary,
             turn=turn,
@@ -352,6 +366,7 @@ def run_single_agent_scan(
 
     result.findings = dedupe_findings(result.findings)
     if cfg.run_remediation_pass and result.findings:
+        if status_cb: status_cb("Synthesizing final remediation patches...")
         _run_remediation_phase(cfg, summary, result)
 
     kg = build_knowledge_graph(
@@ -679,7 +694,9 @@ def _parallel_opening_specialists(
     result.ran_specialists = [name for name, _ in tasks if name not in ("code_analyst", "osint_surface")]
 
     futures = {}
-    with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+    # Limit concurrent threads to prevent resource exhaustion
+    max_workers = min(len(tasks), max(2, cfg.parallel_specialists // 2))
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
         for name, fn in tasks:
             futures[name] = pool.submit(fn)
 
@@ -755,26 +772,45 @@ def _parallel_opening_specialists(
     return prior, summary_recon
 
 
+def run_red_team_scan(
+    workspace: Path,
+    cfg: AppConfig,
+    *,
+    allow_network: bool = False,
+    use_agent_team: bool = True,
+    status_cb: StatusCallback | None = None,
+) -> ScanResult:
+    if use_agent_team and cfg.use_agent_team:
+        return run_team_scan(workspace, cfg, allow_network=allow_network, status_cb=status_cb)
+    return run_single_agent_scan(workspace, cfg, allow_network=allow_network, status_cb=status_cb)
+
+
 def run_team_scan(
     workspace: Path,
     cfg: AppConfig,
     *,
     allow_network: bool = False,
+    status_cb: StatusCallback | None = None,
 ) -> ScanResult:
-    """Distributed workflow: parallel specialists → Recon → Exploit → Validator → Remediator + knowledge graph."""
+    """Distributed workflow with live operative status feedback."""
     build_sandbox_image_if_needed(None, cfg.docker_image_sandbox)
-    summary = _collect_workspace_summary(workspace, cfg)
+    
+    summary = _collect_workspace_summary(workspace, cfg, status_cb=status_cb)
     result = ScanResult()
 
+    if status_cb: status_cb("Deploying [bold magenta]Parallel Specialists[/bold magenta] (Intel/OSINT/Vuln)...")
     prior_parallel, summary_recon = _parallel_opening_specialists(cfg, summary, result)
 
     r_turns, e_turns, v_turns = _budget_turns(cfg)
+    
+    if status_cb: status_cb("Infiltrator [bold cyan]Recon[/bold cyan]: Scanning file systems and attack surface...")
     recon_summary, priority = _phase_recon(
         workspace, cfg, allow_network, summary_recon, result, r_turns
     )
     result.recon_brief = recon_summary
     result.priority_targets = priority
 
+    if status_cb: status_cb("Operative [bold red]Exploit[/bold red]: Generating PoCs and validating vulnerabilities...")
     _phase_exploit(
         workspace,
         cfg,
@@ -788,12 +824,16 @@ def run_team_scan(
     )
     result.findings = dedupe_findings(result.findings)
 
-    _phase_validate(workspace, cfg, allow_network, summary, result, v_turns)
-    result.findings = dedupe_findings(result.findings)
+    if result.findings and status_cb:
+        status_cb("Agent [bold green]Validator[/bold green]: Verifying strike results and impact analysis...")
+        _phase_validate(workspace, cfg, allow_network, summary, result, v_turns)
+        result.findings = dedupe_findings(result.findings)
 
-    if cfg.run_remediation_pass:
+    if cfg.run_remediation_pass and result.findings:
+        if status_cb: status_cb("Agent [bold blue]Remediator[/bold blue]: Synthesizing patches and hardening logic...")
         _run_remediation_phase(cfg, summary, result)
 
+    if status_cb: status_cb("Mission Command: Finalizing intel reports and knowledge graph...")
     kg = build_knowledge_graph(
         finding_titles=[f.title for f in result.findings],
         priority_targets=result.priority_targets,
@@ -803,15 +843,3 @@ def run_team_scan(
     result.orchestration_mermaid = kg.mermaid_flowchart()
 
     return result
-
-
-def run_red_team_scan(
-    workspace: Path,
-    cfg: AppConfig,
-    *,
-    allow_network: bool = False,
-    use_agent_team: bool = True,
-) -> ScanResult:
-    if use_agent_team and cfg.use_agent_team:
-        return run_team_scan(workspace, cfg, allow_network=allow_network)
-    return run_single_agent_scan(workspace, cfg, allow_network=allow_network)

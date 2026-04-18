@@ -1,0 +1,31 @@
+[MASTER]
+# Add files or directories to the blacklist. They should be base names, not paths.
+ignore-patterns=test_.*?\.py,.*_test\.py
+extension-pkg-allow-list=pydantic,httpx,openai,anthropic,groq
+
+[PYLINT]
+# Maximum number of attributes for function parameters
+max-args=7
+
+[DESIGN]
+# Maximum number of arguments for function definition.
+max-args=7
+
+[BASIC]
+# Regular expression matching correct function names. Overrides naming-style.
+function-rgx=^(_)?[a-z][a-z0-9_]*$
+
+[IMPORTS]
+# List of modules that can be imported anywhere, even if they are not in __all__
+allow-wildcard-with-all=False
+
+# Force import order to recognize a module as third party.
+known-third-party=
+    httpx,
+    openai,
+    anthropic,
+    groq,
+    typer,
+    rich,
+    pydantic,
+    docker

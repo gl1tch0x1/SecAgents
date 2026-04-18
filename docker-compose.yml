@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Ollama service - Runs AI models locally
+  ollama:
+    image: ollama/ollama:latest
+    container_name: secagents-ollama
+    ports:
+      - "${SECAGENTS_OLLAMA_HOST_PORT:-11434}:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - secagents-network
+    restart: unless-stopped
+
+  # SecAgents service - Main application
+  secagents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: secagents-app
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./scans:/scans
+      - ./reports:/reports
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Allow running docker inside container
+    environment:
+      - SECAGENTS_PROVIDER=${SECAGENTS_PROVIDER:-ollama}
+      - SECAGENTS_MODEL=${SECAGENTS_MODEL:-llama3.2}
+      - SECAGENTS_OLLAMA_BASE_URL=http://ollama:11434
+      - SECAGENTS_TEMPERATURE=${SECAGENTS_TEMPERATURE:-0.15}
+      - SECAGENTS_TOP_P=${SECAGENTS_TOP_P:-0.9}
+      - SECAGENTS_MAX_TOKENS=${SECAGENTS_MAX_TOKENS:-4096}
+      - SECAGENTS_MAX_AGENT_TURNS=${SECAGENTS_MAX_AGENT_TURNS:-24}
+      - SECAGENTS_USE_AGENT_TEAM=${SECAGENTS_USE_AGENT_TEAM:-true}
+      - SECAGENTS_PARALLEL_SPECIALISTS=${SECAGENTS_PARALLEL_SPECIALISTS:-2}
+      - SECAGENTS_RUN_REMEDIATION_PASS=${SECAGENTS_RUN_REMEDIATION_PASS:-true}
+      - SECAGENTS_USE_MULTI_AI_CONSENSUS=${SECAGENTS_USE_MULTI_AI_CONSENSUS:-true}
+      - SECAGENTS_CONFIDENCE_THRESHOLD=${SECAGENTS_CONFIDENCE_THRESHOLD:-0.75}
+      # Optional API keys - uncomment and set as needed
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # - SECAGENTS_GROQ_API_KEY=${SECAGENTS_GROQ_API_KEY}
+      # - SECAGENTS_DEEPSEEK_API_KEY=${SECAGENTS_DEEPSEEK_API_KEY}
+    networks:
+      - secagents-network
+    restart: unless-stopped
+    # Interactive mode for CLI
+    stdin_open: true
+    tty: true
+
+volumes:
+  ollama-data:
+    driver: local
+
+networks:
+  secagents-network:
+    driver: bridge

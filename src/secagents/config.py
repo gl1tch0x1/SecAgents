@@ -11,6 +11,10 @@ class LLMProvider(StrEnum):
     openai = "openai"
     anthropic = "anthropic"
     ollama = "ollama"
+    qwen = "qwen"
+    deepseek = "deepseek"
+    groq = "groq"
+    xai = "xai"  # Grok via XAI
 
 
 class Severity(StrEnum):
@@ -33,6 +37,12 @@ class AppConfig(BaseSettings):
     openai_api_key: str | None = Field(default=None)
     anthropic_api_key: str | None = Field(default=None)
     ollama_base_url: str = Field(default="http://127.0.0.1:11434")
+    qwen_api_key: str | None = Field(default=None)
+    qwen_base_url: str = Field(default="https://dashscope.aliyuncs.com/api/v1")
+    deepseek_api_key: str | None = Field(default=None)
+    deepseek_base_url: str = Field(default="https://api.deepseek.com")
+    groq_api_key: str | None = Field(default=None)
+    xai_api_key: str | None = Field(default=None)
 
     temperature: float = Field(default=0.15, ge=0.0, le=2.0)
     top_p: float = Field(default=0.9, ge=0.0, le=1.0)
@@ -43,15 +53,22 @@ class AppConfig(BaseSettings):
     ollama_docker_image: str = Field(default="ollama/ollama:latest")
     ollama_host_port: int = Field(default=11434)
 
-    max_agent_turns: int = Field(default=24, ge=1, le=200)
-    max_file_bytes: int = Field(default=120_000)
-    max_files_in_context: int = Field(default=80)
+    max_agent_turns: int = Field(default=12, ge=1, le=200)
+    max_file_bytes: int = Field(default=60_000)
+    max_files_in_context: int = Field(default=40)
 
     # Multi-agent team (Recon → Exploit → Validator → Remediator)
     use_agent_team: bool = Field(default=True)
     recon_turns: int = Field(default=3, ge=0, le=80)
     validation_turns: int = Field(default=5, ge=0, le=80)
     run_remediation_pass: bool = Field(default=True)
+    
+    # Multi-AI consensus & verification
+    use_multi_ai_consensus: bool = Field(default=True)
+    consensus_min_agreement: int = Field(default=2, ge=1, le=10)
+    consensus_models: list[str] = Field(default_factory=lambda: ["gpt-4-turbo", "claude-3-opus"])
+    enable_false_positive_filter: bool = Field(default=True)
+    confidence_threshold: float = Field(default=0.75, ge=0.0, le=1.0)
 
     # Parallel LLM specialists at scan open: 2 = code + OSINT; 3 = +Intel; 4 = +IDOR/OAuth; 5 = +Race; 6 = +LLM
     parallel_specialists: int = Field(default=2, ge=1, le=10)
@@ -68,6 +85,17 @@ class AppConfig(BaseSettings):
 
     sandbox_shm_size: str = Field(default="1g")
     sandbox_command_timeout_sec: int = Field(default=300, ge=30, le=3600)
+    
+    # Enterprise features
+    enable_logging: bool = Field(default=True)
+    log_directory: str = Field(default=".secagents-logs")
+    enable_caching: bool = Field(default=True)
+    cache_directory: str = Field(default=".secagents-cache")
+    enable_rate_limiting: bool = Field(default=True)
+    enable_preflight_checks: bool = Field(default=True)
+    enable_sarif_export: bool = Field(default=True)
+    llm_response_cache_ttl_hours: int = Field(default=24, ge=1, le=720)
+    scan_result_cache_ttl_days: int = Field(default=7, ge=1, le=90)
 
     @model_validator(mode="after")
     def _fill_standard_api_env(self) -> AppConfig:
@@ -76,6 +104,14 @@ class AppConfig(BaseSettings):
             upd["openai_api_key"] = os.getenv("OPENAI_API_KEY")
         if not self.anthropic_api_key and os.getenv("ANTHROPIC_API_KEY"):
             upd["anthropic_api_key"] = os.getenv("ANTHROPIC_API_KEY")
+        if not self.qwen_api_key and os.getenv("QWEN_API_KEY"):
+            upd["qwen_api_key"] = os.getenv("QWEN_API_KEY")
+        if not self.deepseek_api_key and os.getenv("DEEPSEEK_API_KEY"):
+            upd["deepseek_api_key"] = os.getenv("DEEPSEEK_API_KEY")
+        if not self.groq_api_key and os.getenv("GROQ_API_KEY"):
+            upd["groq_api_key"] = os.getenv("GROQ_API_KEY")
+        if not self.xai_api_key and os.getenv("XAI_API_KEY"):
+            upd["xai_api_key"] = os.getenv("XAI_API_KEY")
         if upd:
             return self.model_copy(update=upd)
         return self

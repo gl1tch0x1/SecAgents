@@ -1,0 +1,27 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "SecAgents"
+    }
+  ],
+  "settings": {
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.extraPaths": [
+      "${workspaceFolder}/src"
+    ],
+    "python.analysis.diagnosticMode": "workspace",
+    "pylance.analysis.typeCheckingMode": "basic",
+    "pylance.analysis.extraPaths": [
+      "${workspaceFolder}/src"
+    ],
+    "pylance.analysis.diagnosticMode": "workspace",
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      ".pytest_cache": true,
+      ".ruff_cache": true,
+      "*.egg-info": true
+    }
+  }
+}

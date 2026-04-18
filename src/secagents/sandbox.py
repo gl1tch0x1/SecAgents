@@ -5,11 +5,8 @@ import subprocess
 import uuid
 from pathlib import Path
 
-from rich.console import Console
-
+from secagents.cli.ui import ui
 from secagents.paths import bundled_docker_dir
-
-console = Console(stderr=True)
 
 
 def _docker_bin() -> str:
@@ -83,13 +80,11 @@ def build_sandbox_image_if_needed(dockerfile_dir: Path | None, tag: str) -> None
     base = dockerfile_dir or bundled_docker_dir()
     df = base / "Dockerfile.sandbox"
     if not df.is_file():
-        console.print(
-            "[yellow]No Dockerfile.sandbox found; using plain alpine for sandbox.[/yellow]"
-        )
+        ui.print_warning("No Dockerfile.sandbox found; using plain alpine for sandbox.")
         subprocess.run([docker, "pull", "alpine:3.20"], check=True)
         subprocess.run([docker, "tag", "alpine:3.20", tag], check=True)
         return
-    console.print(f"[bold cyan]Building[/bold cyan] sandbox image [bold]{tag}[/bold] …")
+    ui.console.print(f"[bold cyan]Building[/bold cyan] sandbox image [bold]{tag}[/bold] …")
     subprocess.run(
         [docker, "build", "-f", str(df), "-t", tag, str(base)],
         check=True,

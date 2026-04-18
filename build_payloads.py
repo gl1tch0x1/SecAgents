@@ -3,7 +3,7 @@ import glob
 from pathlib import Path
 
 repo = Path("payload_tmp")
-dest = Path(r"src\secagents\data\payloads")
+dest = Path("src") / "secagents" / "data" / "payloads"
 
 mappings = {
     "xss.txt": ["XSS Injection/Intruders/*.txt", "XSS Injection/*.txt"],

@@ -1,0 +1,12 @@
+{
+  "typeCheckingMode": "basic",
+  "pythonVersion": "3.13",
+  "pythonPlatform": "All",
+  "include": ["src"],
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "reportPrivateUsage": false,
+  "reportUnnecessaryIsInstance": false,
+  "reportConstantRedefinition": false,
+  "stubPath": "typings"
+}

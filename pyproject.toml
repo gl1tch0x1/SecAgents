@@ -28,20 +28,22 @@ dependencies = [
   "pydantic-settings>=2.2.0",
   "openai>=1.40.0",
   "anthropic>=0.34.0",
+  "groq>=0.4.0",
   "gitpython>=3.1.43",
   "packaging>=24.0",
 ]
 
 [project.optional-dependencies]
 docker = ["docker>=7.1.0"]
+system = ["psutil>=5.9.0"]
 dev = ["ruff>=0.6.0", "pytest>=8.0.0"]
 
 [project.urls]
-Homepage = "https://github.com/YOUR_ORG/secagents"
-Documentation = "https://github.com/YOUR_ORG/secagents/blob/main/docs/wiki/Home.md"
-Repository = "https://github.com/YOUR_ORG/secagents"
-Issues = "https://github.com/YOUR_ORG/secagents/issues"
-Changelog = "https://github.com/YOUR_ORG/secagents/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/gl1tch0x1/SecAgents"
+Documentation = "https://github.com/gl1tch0x1/SecAgents/blob/main/docs/wiki/Home.md"
+Repository = "https://github.com/gl1tch0x1/SecAgents"
+Issues = "https://github.com/gl1tch0x1/SecAgents/issues"
+Changelog = "https://github.com/gl1tch0x1/SecAgents/blob/main/change_log.md"
 
 [project.scripts]
 secagents = "secagents.cli.main:app"
@@ -64,3 +66,9 @@ ignore = ["E501"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q"
+
+[tool.pyrefly]
+# Tell Pyrefly where the source root is so it can resolve `secagents.*` imports
+project_includes = ["src"]
+# Suppress errors in Pyrefly's own virtual in-memory fragments (hover/autocomplete)
+ignore_missing_source = true

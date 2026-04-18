@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Python: SecAgents CLI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "secagents.cli.main",
+      "args": [
+        "scan",
+        "."
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Python: Doctor Command",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "secagents.cli.main",
+      "args": [
+        "doctor"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}
