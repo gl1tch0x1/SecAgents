@@ -54,23 +54,32 @@ def chat_completion(
         if cached:
             return cached
     
-    # Call appropriate provider
-    if cfg.provider == LLMProvider.openai:
-        response = _openai_chat(cfg, system=system, user=user)
-    elif cfg.provider == LLMProvider.anthropic:
-        response = _anthropic_chat(cfg, system=system, user=user)
-    elif cfg.provider == LLMProvider.ollama:
-        response = _ollama_chat(cfg, system=system, user=user)
-    elif cfg.provider == LLMProvider.qwen:
-        response = _qwen_chat(cfg, system=system, user=user)
-    elif cfg.provider == LLMProvider.deepseek:
-        response = _deepseek_chat(cfg, system=system, user=user)
-    elif cfg.provider == LLMProvider.groq:
-        response = _groq_chat(cfg, system=system, user=user)
-    elif cfg.provider == LLMProvider.xai:
-        response = _xai_chat(cfg, system=system, user=user)
-    else:
-        raise ValueError(f"Unsupported provider: {cfg.provider}")
+    # Call appropriate provider with error context
+    provider_name = cfg.provider.value
+    try:
+        if cfg.provider == LLMProvider.openai:
+            response = _openai_chat(cfg, system=system, user=user)
+        elif cfg.provider == LLMProvider.anthropic:
+            response = _anthropic_chat(cfg, system=system, user=user)
+        elif cfg.provider == LLMProvider.ollama:
+            response = _ollama_chat(cfg, system=system, user=user)
+        elif cfg.provider == LLMProvider.qwen:
+            response = _qwen_chat(cfg, system=system, user=user)
+        elif cfg.provider == LLMProvider.deepseek:
+            response = _deepseek_chat(cfg, system=system, user=user)
+        elif cfg.provider == LLMProvider.groq:
+            response = _groq_chat(cfg, system=system, user=user)
+        elif cfg.provider == LLMProvider.xai:
+            response = _xai_chat(cfg, system=system, user=user)
+        else:
+            raise ValueError(f"Unsupported provider: {cfg.provider}")
+    except ValueError as e:
+        raise ValueError(f"[{provider_name}] {str(e)}") from e
+    except Exception as e:
+        raise RuntimeError(
+            f"[{provider_name}] LLM call failed: {str(e)}. "
+            f"Check that {provider_name} is running and properly configured."
+        ) from e
     
     # Cache response
     if cfg.enable_caching:
@@ -78,9 +87,6 @@ def chat_completion(
         cache.set(system, user, cfg.model, response)
     
     return response
-    if cfg.provider == LLMProvider.xai:
-        return _xai_chat(cfg, system=system, user=user)
-    return _ollama_chat(cfg, system=system, user=user)
 
 
 def _openai_chat(cfg: AppConfig, *, system: str, user: str) -> str:
@@ -143,8 +149,22 @@ def _ollama_chat(cfg: AppConfig, *, system: str, user: str) -> str:
         ],
     }
     client = _get_httpx_client(timeout=120.0)  # Reduced from 600
-    r = client.post(url, json=payload)
-    r.raise_for_status()
+    try:
+        r = client.post(url, json=payload)
+        if r.status_code == 404:
+            raise ValueError(
+                f"Ollama /api/chat endpoint not found at {url}. "
+                f"Ensure Ollama is running and up to date. "
+                f"Start with: docker run -d --name ollama -p 11434:11434 ollama/ollama"
+            )
+        r.raise_for_status()
+    except Exception as e:
+        if "Connection refused" in str(e) or "Failed to establish" in str(e):
+            raise ValueError(
+                f"Cannot connect to Ollama at {cfg.ollama_base_url}. "
+                f"Is it running? Start with: docker run -d --name ollama -p 11434:11434 ollama/ollama"
+            ) from e
+        raise
     data = r.json()
     msg = data.get("message") or {}
     return str(msg.get("content") or "")
