@@ -216,6 +216,12 @@ def scan(
         t = target.strip()
         if t.startswith("http://") or t.startswith("https://"):
             resolved_kind = "repo" if "github.com" in t and "/blob/" not in t else "url"
+        elif "github.com" in t and "/" in t:
+            # GitHub repo pattern without protocol
+            resolved_kind = "repo"
+        elif "." in t and "/" not in t and not t.startswith(".") and not Path(t).exists():
+            # Looks like a domain name (has dots, no slashes, not a hidden file, doesn't exist locally)
+            resolved_kind = "url"
         else:
             resolved_kind = "local"
 
