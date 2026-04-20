@@ -44,6 +44,10 @@ def acquire_url_target(url: str) -> AcquiredTarget:
     Prepare a small synthetic workspace describing the URL target and a quick probe.
     Agents use this for black-box style checks; deep testing still needs the running app.
     """
+    # Normalize URL - add https:// if no scheme present
+    if not url.startswith(("http://", "https://")):
+        url = f"https://{url}"
+    
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https") or not parsed.netloc:
         raise ValueError(f"Invalid HTTP(S) URL: {url}")
