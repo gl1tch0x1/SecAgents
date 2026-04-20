@@ -6,12 +6,19 @@
   "exclude": [
     "**/node_modules",
     "**/__pycache__",
+    "**/.pytest_cache",
+    "**/.git",
+    "**/.tox",
+    "**/.mypy_cache",
+    "**/.ruff_cache",
     "**/.*",
     "**/*.egg-info",
     "**/venv",
     "**/.venv",
     "**/build",
-    "**/dist"
+    "**/dist",
+    "**/htmlcov",
+    "**/.coverage"
   ],
   "reportMissingImports": true,
   "reportMissingTypeStubs": false,
