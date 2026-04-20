@@ -153,7 +153,17 @@ class PreflightValidator:
     
     def _check_memory_available(self) -> None:
         """Check available system memory."""
-        import psutil
+        try:
+            import psutil
+        except ImportError:
+            self.checks.append(PreflightCheck(
+                name="System Memory",
+                passed=False,
+                message="psutil not installed (system optional dependency)",
+                severity="warning",
+                remediation="Install with: pip install secagents[system]"
+            ))
+            return
         
         try:
             memory = psutil.virtual_memory()
@@ -172,12 +182,12 @@ class PreflightValidator:
                     passed=True,
                     message=f"{available_gb:.1f}GB available"
                 ))
-        except Exception:
+        except Exception as e:
             self.checks.append(PreflightCheck(
                 name="System Memory",
-                passed=True,
-                message="Could not check memory (psutil not available)",
-                severity="info"
+                passed=False,
+                message=f"Failed to check memory: {e}",
+                severity="warning"
             ))
     
     def _check_network_connectivity(self) -> None:
